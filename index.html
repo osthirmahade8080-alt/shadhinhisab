@@ -1,0 +1,1497 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>স্বাধীন হিসাব PRO</title>
+<meta name="theme-color" content="#05070f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#05070f;--bg2:#0b1120;--bg3:#111c30;--text:#f8fafc;--muted:#94a3b8;--green:#10b981;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--amber:#f59e0b;--border:#1e293b;--sw:260px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter','Hind Siliguri',sans-serif}
+body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:4px}
+
+/* PIN SCREEN */
+#pin-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+.pin-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px 32px;width:90%;max-width:340px;text-align:center}
+.pin-logo{width:72px;height:72px;border-radius:16px;margin:0 auto 14px;border:2px solid var(--green);display:block}
+.pin-title{font-size:18px;font-weight:700;color:var(--green);margin-bottom:4px}
+.pin-sub{font-size:12px;color:var(--muted);margin-bottom:22px}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:22px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:.2s}
+.pin-dot.filled{background:var(--green);border-color:var(--green)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto}
+.pin-key{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:18px;font-weight:700;cursor:pointer;transition:.15s;color:var(--text)}
+.pin-key:hover{background:rgba(16,185,129,0.1);border-color:var(--green)}
+.pin-key.del{font-size:14px;color:var(--red)}
+.pin-err{color:var(--red);font-size:12px;margin-top:10px;min-height:18px}
+.pin-forgot{font-size:12px;color:var(--blue);cursor:pointer;margin-top:10px;text-decoration:underline}
+
+/* SQ SCREEN */
+#sq-screen{position:fixed;inset:0;background:var(--bg);z-index:9998;display:none;align-items:center;justify-content:center}
+.sq-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px;width:90%;max-width:360px;text-align:center}
+.sq-box h3{color:var(--amber);margin-bottom:16px;font-size:16px}
+.sq-box p{color:var(--muted);font-size:13px;margin-bottom:16px}
+.sq-ans{width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:10px;color:white;font-size:14px;outline:none;margin-bottom:12px;font-family:'Hind Siliguri',sans-serif}
+.sq-ans:focus{border-color:var(--amber)}
+.sq-err{color:var(--red);font-size:12px;min-height:18px;margin-bottom:8px}
+
+/* TICKER */
+.ticker-bar{background:#060b16;border-bottom:1px solid var(--border);padding:7px 16px;font-size:11px;display:flex;overflow:hidden;white-space:nowrap;color:var(--muted);flex-shrink:0}
+.ticker-wrap{display:flex;gap:40px;animation:tscroll 80s linear infinite}
+.ticker-item{display:flex;align-items:center;gap:5px}
+.ticker-item span{color:var(--green);font-weight:600}
+@keyframes tscroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* BALANCE HERO */
+.balance-hero{background:linear-gradient(135deg,#0a1628,#0d2818);border:1px solid rgba(16,185,129,0.25);border-radius:16px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:relative;overflow:hidden;flex-shrink:0}
+.balance-hero::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(16,185,129,0.12),transparent);border-radius:50%}
+.bh-label{font-size:11px;color:rgba(16,185,129,0.8);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:6px}
+.bh-amount{font-size:32px;font-weight:800;letter-spacing:-1px}
+.bh-sub{font-size:11px;color:var(--muted);margin-top:5px}
+.bh-right{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.bh-stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.bh-stat-val{font-size:14px;font-weight:700}
+.warn-bar{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:7px 12px;font-size:11px;color:var(--red);display:none;align-items:center;gap:6px}
+.budget-warn{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:7px 12px;font-size:11px;color:var(--amber);display:none;align-items:center;gap:6px}
+
+/* LAYOUT */
+.app-body{display:flex;flex:1;height:calc(100vh - 33px);overflow:hidden;position:relative}
+
+/* SIDEBAR */
+.sidebar{width:var(--sw);background:var(--bg2);border-right:1px solid var(--border);padding:16px 12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;flex-shrink:0;transition:width .3s,padding .3s,transform .3s;z-index:1010}
+.sidebar.closed{width:0;padding:0;overflow:hidden;border-right:none}
+.sidebar::-webkit-scrollbar{width:3px}
+.logo-area{display:flex;align-items:center;gap:10px;padding:4px}
+.logo-img{width:40px;height:40px;border-radius:10px;object-fit:cover;border:2px solid var(--green);flex-shrink:0;background:var(--green)}
+.logo-text h2{color:var(--green);font-size:13px;font-weight:700;white-space:nowrap;line-height:1.3}
+.logo-text p{font-size:10px;color:var(--muted);white-space:nowrap}
+.profile-widget{background:rgba(255,255,255,0.025);border:1px solid var(--border);padding:10px;border-radius:10px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.15s}
+.profile-widget:hover{border-color:var(--blue)}
+.profile-img{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#a855f7);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:white;flex-shrink:0}
+.menu-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#475569;margin:8px 0 2px 6px;font-weight:700;white-space:nowrap}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;color:var(--muted);font-size:13px;font-weight:500;transition:.15s;cursor:pointer;border-radius:7px;white-space:nowrap;border-left:3px solid transparent}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03)}
+.nav-item.active{background:rgba(16,185,129,0.07);color:var(--green);font-weight:600;border-left-color:var(--green)}
+.nav-emoji{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+
+/* MAIN */
+.main-container{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;padding-bottom:55px}
+.hamburger-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:.2s;flex-shrink:0}
+.hamburger-btn:hover{border-color:var(--blue)}
+
+/* HEADER */
+.ctrl-header{background:var(--bg2);border:1px solid var(--border);padding:12px 16px;border-radius:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.ctrl-title h1{font-size:17px;font-weight:700}
+.ctrl-title p{font-size:11px;color:var(--muted);margin-top:2px}
+.ctrl-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.c-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;transition:.15s}
+.c-btn:hover{border-color:var(--blue)}
+
+/* SEARCH */
+.search-bar{display:flex;gap:8px;align-items:center}
+.search-input{flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:white;outline:none;font-size:13px;font-family:'Hind Siliguri',sans-serif}
+.search-input:focus{border-color:var(--blue)}
+.search-results{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:4px;display:none}
+
+/* DATE FILTER */
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap}
+.f-btn{padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:.15s;font-family:'Hind Siliguri',sans-serif}
+.f-btn:hover{border-color:var(--green);color:var(--text)}
+.f-btn.active{background:rgba(16,185,129,0.12);border-color:var(--green);color:var(--green)}
+
+/* STAT CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:1100px){.cards-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-card{border-radius:14px;padding:14px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.06);transition:.2s}
+.stat-card:hover{transform:translateY(-1px)}
+.sc-label{font-size:11px;font-weight:600;letter-spacing:.3px;margin-bottom:8px}
+.sc-amount{font-size:22px;font-weight:800;letter-spacing:-0.5px}
+.sc-sub{font-size:10px;margin-top:5px;opacity:.7}
+.sc-emoji{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:28px;opacity:.2}
+.sc-inc{background:linear-gradient(135deg,#0d2818,#0b1f14);border-top:2px solid var(--green)}
+.sc-inc .sc-label,.sc-inc .sc-amount{color:var(--green)}
+.sc-exp{background:linear-gradient(135deg,#2a0d0d,#1f0b0b);border-top:2px solid var(--red)}
+.sc-exp .sc-label,.sc-exp .sc-amount{color:var(--red)}
+.sc-save{background:linear-gradient(135deg,#160d2a,#0f0818);border-top:2px solid var(--purple)}
+.sc-save .sc-label,.sc-save .sc-amount{color:var(--purple)}
+.sc-today{background:linear-gradient(135deg,#1a1200,#120d00);border-top:2px solid #fb923c}
+.sc-today .sc-label,.sc-today .sc-amount{color:#fb923c}
+.sc-debt{background:linear-gradient(135deg,#211700,#180f00);border-top:2px solid var(--amber)}
+.sc-debt .sc-label,.sc-debt .sc-amount{color:var(--amber)}
+.sc-bal{background:linear-gradient(135deg,#0d1a30,#091122);border-top:2px solid var(--blue)}
+.sc-bal .sc-label,.sc-bal .sc-amount{color:var(--blue)}
+
+/* PAGES */
+.app-page{display:none}
+.app-page.active-page{display:block}
+
+/* SECTIONS */
+.workspace-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+.section{background:var(--bg2);border:1px solid var(--border);padding:16px;border-radius:14px;margin-bottom:12px}
+.section h3{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+
+/* FORMS */
+.form-group{margin-bottom:10px}
+.form-group label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+.form-control{width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:7px;padding:9px 11px;color:white;outline:none;font-size:13px;transition:.15s;font-family:'Hind Siliguri',sans-serif}
+.form-control:focus{border-color:var(--green)}
+input[type="date"].form-control{color-scheme:dark}
+.btn{padding:9px 15px;border-radius:7px;border:none;font-weight:600;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;justify-content:center;transition:.15s;font-family:'Hind Siliguri',sans-serif}
+.btn-green{background:var(--green);color:white}
+.btn-red{background:var(--red);color:white}
+.btn-blue{background:var(--blue);color:white}
+.btn-purple{background:var(--purple);color:white}
+.btn-amber{background:var(--amber);color:#000}
+.btn-ghost{background:rgba(255,255,255,0.04);color:white;border:1px solid var(--border)}
+.btn-danger{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.25);padding:5px 9px;font-size:11px;border-radius:6px;cursor:pointer}
+.btn-danger:hover{background:var(--red);color:white}
+.btn-edit{background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.25);padding:5px 9px;font-size:11px;border-radius:6px;cursor:pointer}
+.btn-edit:hover{background:var(--blue);color:white}
+.btn:hover{opacity:.88}
+
+/* LISTS */
+.list-group{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow-y:auto}
+.list-item{background:rgba(255,255,255,0.015);border:1px solid var(--border);padding:10px 12px;border-radius:9px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.li-info h4{font-size:13px;font-weight:600}
+.li-info p{font-size:11px;color:var(--muted);margin-top:2px}
+.li-date{font-size:10px;color:var(--muted);margin-top:3px}
+.li-actions{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.exp-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-left:4px}
+.badge-self{background:rgba(59,130,246,0.2);color:var(--blue)}
+.badge-family{background:rgba(168,85,247,0.2);color:var(--purple)}
+.badge-other{background:rgba(100,116,139,0.2);color:#94a3b8}
+
+/* PASSWORD VAULT */
+.acc-logo{width:33px;height:33px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:14px;color:white;flex-shrink:0}
+.logo-fb{background:#1877f2}.logo-google{background:#ea4335}
+.logo-tiktok{background:#000;border:1px solid #25f4ee}.logo-other{background:#475569}
+.pass-hidden{font-family:monospace;letter-spacing:3px;font-size:12px}
+
+/* SCRATCHPAD */
+.scratchpad-textarea{width:100%;height:100px;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:9px;color:white;padding:12px;outline:none;font-size:13px;resize:none;font-family:'Hind Siliguri',sans-serif}
+.scratchpad-textarea:focus{border-color:var(--purple)}
+
+/* TABLE */
+.custom-table{width:100%;border-collapse:collapse}
+.custom-table th{padding:9px 10px;color:var(--muted);font-size:11px;border-bottom:1px solid var(--border);text-align:left}
+.custom-table td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.025);font-size:12.5px}
+
+/* HUB */
+.hub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.hub-card{background:rgba(255,255,255,0.015);border:1px solid var(--border);padding:14px 10px;border-radius:10px;text-align:center;cursor:pointer;transition:.2s;display:flex;flex-direction:column;gap:7px;align-items:center;font-size:12px;font-weight:500}
+.hub-card:hover{border-color:var(--green);background:rgba(16,185,129,0.05)}
+.hc-emoji{font-size:22px}
+
+/* CONVERTER */
+.converter-box{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.conv-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.conv-result{font-size:22px;font-weight:800;color:var(--green);margin-top:8px}
+.conv-rate{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* BUDGET */
+.budget-section{background:rgba(245,158,11,0.04);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:12px}
+.prog-wrap{margin-top:10px}
+.prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px}
+.prog-bar{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .5s}
+
+/* SALARY */
+.salary-bar{background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+
+/* ABOUT */
+.about-logo{width:80px;height:80px;border-radius:18px;display:block;margin:0 auto 14px;border:3px solid var(--green)}
+.contact-row{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;font-size:13px}
+.ci{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+
+/* MOBILE NAV */
+.mobile-nav-bar{display:none;background:var(--bg2);border-top:1px solid var(--border);position:fixed;bottom:28px;left:0;width:100%;height:56px;justify-content:space-around;align-items:center;z-index:997}
+.mobile-nav-item{display:flex;flex-direction:column;align-items:center;color:var(--muted);font-size:10px;cursor:pointer;gap:2px;flex:1;justify-content:center;height:100%}
+.mn-emoji{font-size:18px;line-height:1}
+.mobile-nav-item.active{color:var(--green)}
+
+/* BOTTOM AD */
+.ad-bar{background:#060b16;border-top:1px solid var(--border);padding:7px 0;font-size:12px;overflow:hidden;white-space:nowrap;position:fixed;bottom:0;left:0;width:100%;z-index:996}
+.ad-wrap{display:inline-flex;gap:60px;animation:adscroll 60s linear infinite;padding-left:100%}
+.ad-wrap .ad-name{color:var(--amber);font-weight:700}
+.ad-wrap .ad-link{color:#60a5fa}
+@keyframes adscroll{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+
+/* OVERLAY */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1008}
+.sidebar-overlay.show{display:block}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:#0d1929;border:1px solid var(--border);padding:22px;border-radius:14px;width:92%;max-width:400px;max-height:90vh;overflow-y:auto}
+.modal-box h3{font-size:14px;margin-bottom:16px;display:flex;align-items:center;gap:7px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.empty-state{color:var(--muted);font-size:12px;padding:14px;text-align:center;border:1px dashed var(--border);border-radius:8px}
+
+@media(max-width:992px){.workspace-grid{grid-template-columns:1fr}}
+@media(max-width:768px){
+.sidebar{position:fixed;top:33px;left:0;height:calc(100vh - 33px);transform:translateX(-100%);z-index:1010}
+.sidebar.mobile-open{transform:translateX(0)}
+.mobile-nav-bar{display:flex}
+.main-container{padding:12px;padding-bottom:92px}
+body{overflow-y:auto}
+.app-body{height:auto;overflow:visible}
+.ticker-bar{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN (default hidden) -->
+<div id="pin-screen">
+  <div class="pin-box">
+    <img class="pin-logo" src="https://i.supaimg.com/a70e0b4d-ffa6-4746-9194-5434effbd1b0/a959ff02-aab3-4a73-ad69-53407e1dbaac.png" onerror="this.style.display='none'">
+    <div class="pin-title">স্বাধীন হিসাব PRO</div>
+    <div class="pin-sub" id="pin-sub-text">PIN দিয়ে প্রবেশ করুন</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key" style="opacity:.3" onclick="pinKey('')"></button>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key del" onclick="pinDel()">⌫</button>
+    </div>
+    <div class="pin-err" id="pin-err"></div>
+    <div class="pin-forgot" id="pin-forgot" onclick="showSQScreen()" style="display:none">🔑 PIN ভুলে গেছেন?</div>
+  </div>
+</div>
+
+<!-- SQ SCREEN -->
+<div id="sq-screen">
+  <div class="sq-box">
+    <h3>🔐 Security Question</h3>
+    <p id="sq-question-display">প্রশ্নের উত্তর দিন</p>
+    <input type="text" class="sq-ans" id="sq-answer-input" placeholder="উত্তর লিখুন...">
+    <div class="sq-err" id="sq-err"></div>
+    <button class="btn btn-amber" style="width:100%;margin-bottom:8px" onclick="checkSQAnswer()">✅ যাচাই করুন</button>
+    <button class="btn btn-ghost" style="width:100%;font-size:12px" onclick="hideSQScreen()">← পিছে যান</button>
+  </div>
+</div>
+
+<!-- TOP TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-wrap">
+    <div class="ticker-item">🪙 BTC: <span id="api-btc">লোড...</span></div>
+    <div class="ticker-item">💎 ETH: <span id="api-eth">—</span></div>
+    <div class="ticker-item">💵 USD: <span id="api-usd">—</span></div>
+    <div class="ticker-item">🇶🇦 QAR: <span id="api-qar">—</span></div>
+    <div class="ticker-item">🇸🇦 SAR: <span id="api-sar">—</span></div>
+    <div class="ticker-item">🇦🇪 AED: <span id="api-aed">—</span></div>
+    <div class="ticker-item">🇲🇾 MYR: <span id="api-myr">—</span></div>
+    <div class="ticker-item">🇸🇬 SGD: <span id="api-sgd">—</span></div>
+    <div class="ticker-item">🇬🇧 GBP: <span id="api-gbp">—</span></div>
+    <div class="ticker-item">💶 EUR: <span id="api-eur">—</span></div>
+    <div class="ticker-item">🇰🇼 KWD: <span id="api-kwd">—</span></div>
+    <div class="ticker-item">🇧🇭 BHD: <span id="api-bhd">—</span></div>
+    <div class="ticker-item">🇯🇵 JPY: <span id="api-jpy">—</span></div>
+    <div class="ticker-item">🪙 BTC: <span class="btc2">—</span></div>
+    <div class="ticker-item">💎 ETH: <span class="eth2">—</span></div>
+    <div class="ticker-item">💵 USD: <span class="usd2">—</span></div>
+    <div class="ticker-item">🇶🇦 QAR: <span class="qar2">—</span></div>
+    <div class="ticker-item">🇸🇦 SAR: <span class="sar2">—</span></div>
+    <div class="ticker-item">🇦🇪 AED: <span class="aed2">—</span></div>
+    <div class="ticker-item">🇲🇾 MYR: <span class="myr2">—</span></div>
+    <div class="ticker-item">🇸🇬 SGD: <span class="sgd2">—</span></div>
+    <div class="ticker-item">🇬🇧 GBP: <span class="gbp2">—</span></div>
+    <div class="ticker-item">💶 EUR: <span class="eur2">—</span></div>
+    <div class="ticker-item">🇰🇼 KWD: <span class="kwd2">—</span></div>
+    <div class="ticker-item">🇧🇭 BHD: <span class="bhd2">—</span></div>
+    <div class="ticker-item">🇯🇵 JPY: <span class="jpy2">—</span></div>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sbOverlay" onclick="closeMobileSidebar()"></div>
+
+<div class="app-body">
+<!-- SIDEBAR -->
+<div class="sidebar" id="appSidebar">
+  <div class="logo-area">
+    <img class="logo-img" src="https://i.supaimg.com/a70e0b4d-ffa6-4746-9194-5434effbd1b0/a959ff02-aab3-4a73-ad69-53407e1dbaac.png" onerror="this.style.display='none'">
+    <div class="logo-text"><h2>স্বাধীন হিসাব PRO</h2><p>হিসাব রাখুন • উন্নতি করুন</p></div>
+  </div>
+  <div class="profile-widget" onclick="changeProfile()">
+    <div class="profile-img" id="profile-avatar">HQ</div>
+    <div><h4 style="font-size:13px" id="user-name">প্রো ইউজার</h4><p style="font-size:11px;color:var(--muted)" id="user-role">চিফ একজিকিউটিভ</p></div>
+  </div>
+  <div>
+    <div class="menu-label">ককপিট</div>
+    <a class="nav-item active" onclick="nav('dash-pg',this,'🏠 ড্যাশবোর্ড')"><span class="nav-emoji">🏠</span>ড্যাশবোর্ড</a>
+    <a class="nav-item" onclick="nav('acc-pg',this,'🔐 পাসওয়ার্ড ভল্ট')"><span class="nav-emoji">🔐</span>পাসওয়ার্ড ভল্ট</a>
+  </div>
+  <div>
+    <div class="menu-label">ফিন্যান্সিয়াল</div>
+    <a class="nav-item" onclick="nav('inc-pg',this,'💰 নগদ আয়')"><span class="nav-emoji">💰</span>নগদ আয় বুক</a>
+    <a class="nav-item" onclick="nav('exp-pg',this,'💸 নগদ খরচ')"><span class="nav-emoji">💸</span>নগদ খরচ বুক</a>
+    <a class="nav-item" onclick="nav('debt-pg',this,'🤝 ধার-দেনা')"><span class="nav-emoji">🤝</span>ধার-দেনা বুক</a>
+    <a class="nav-item" onclick="nav('save-pg',this,'🏦 সঞ্চয় ভল্ট')"><span class="nav-emoji">🏦</span>সঞ্চয় ভল্ট</a>
+  </div>
+  <div>
+    <div class="menu-label">টুলস</div>
+    <a class="nav-item" onclick="nav('conv-pg',this,'🔄 কারেন্সি কনভার্টার')"><span class="nav-emoji">🔄</span>কারেন্সি কনভার্টার</a>
+    <a class="nav-item" onclick="nav('hub-pg',this,'🧩 ফিচার হাব')"><span class="nav-emoji">🧩</span>অল ফিচার হাব</a>
+  </div>
+  <div>
+    <div class="menu-label">ডেটা</div>
+    <a class="nav-item" onclick="nav('ledger-pg',this,'📋 মাস্টার লেজার')"><span class="nav-emoji">📋</span>মাস্টার লেজার</a>
+    <a class="nav-item" onclick="nav('backup-pg',this,'🛡️ ব্যাকআপ')"><span class="nav-emoji">🛡️</span>ব্যাকআপ / রিসেট</a>
+    <a class="nav-item" onclick="nav('about-pg',this,'ℹ️ অ্যাপ সম্পর্কে')"><span class="nav-emoji">ℹ️</span>অ্যাপ সম্পর্কে</a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-container">
+
+  <!-- HEADER -->
+  <div class="ctrl-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="hamburger-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div class="ctrl-title"><h1 id="page-title">🏠 ড্যাশবোর্ড</h1><p id="today-date"></p></div>
+    </div>
+    <div class="ctrl-actions">
+      <button class="c-btn" onclick="generatePDF()">📄 Statement</button>
+      <button class="c-btn" onclick="nav('conv-pg',null,'🔄 কনভার্টার')">🔄 QAR</button>
+    </div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-bar">
+    <input type="text" class="search-input" id="globalSearch" placeholder="🔍 এন্ট্রি খুঁজুন..." oninput="doSearch(this.value)">
+  </div>
+  <div class="search-results" id="searchResults"></div>
+
+  <!-- BALANCE HERO -->
+  <div class="balance-hero">
+    <div>
+      <div class="bh-label">একাউন্ট ব্যালেন্স</div>
+      <div class="bh-amount" id="hero-balance">৳ ০</div>
+      <div class="bh-sub" id="hero-sub">আয় থেকে খরচ বাদ দিয়ে</div>
+    </div>
+    <div class="bh-right">
+      <div><div class="bh-stat-label">এই মাসের আয়</div><div class="bh-stat-val" style="color:var(--green)" id="hero-inc">৳ ০</div></div>
+      <div><div class="bh-stat-label">এই মাসের খরচ</div><div class="bh-stat-val" style="color:var(--red)" id="hero-exp">৳ ০</div></div>
+    </div>
+  </div>
+
+  <!-- WARNINGS -->
+  <div class="warn-bar" id="warn-bar">⚠️ সতর্কতা: এই মাসে খরচ আয়ের চেয়ে বেশি!</div>
+  <div class="budget-warn" id="budget-warn">⚠️ বাজেট সতর্কতা!</div>
+
+  <!-- DATE FILTER -->
+  <div class="filter-bar">
+    <button class="f-btn active" onclick="setFilter('all',this)">🔄 সব</button>
+    <button class="f-btn" onclick="setFilter('today',this)">📅 আজ</button>
+    <button class="f-btn" onclick="setFilter('week',this)">📆 এই সপ্তাহ</button>
+    <button class="f-btn" onclick="setFilter('month',this)">🗓️ এই মাস</button>
+    <button class="f-btn" onclick="setFilter('last',this)">⏮️ গত মাস</button>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="cards-grid">
+    <div class="stat-card sc-inc"><div class="sc-label">💰 মোট আয়</div><div class="sc-amount" id="m-income">৳ ০</div><div class="sc-sub" id="m-inc-c">০ এন্ট্রি</div><span class="sc-emoji">💰</span></div>
+    <div class="stat-card sc-exp"><div class="sc-label">💸 মোট খরচ</div><div class="sc-amount" id="m-expense">৳ ০</div><div class="sc-sub" id="m-exp-c">০ এন্ট্রি</div><span class="sc-emoji">💸</span></div>
+    <div class="stat-card sc-save"><div class="sc-label">🏦 সঞ্চয়</div><div class="sc-amount" id="m-saving">৳ ০</div><div class="sc-sub">লক করা</div><span class="sc-emoji">🏦</span></div>
+    <div class="stat-card sc-today"><div class="sc-label">📅 আজকের খরচ</div><div class="sc-amount" id="m-today">৳ ০</div><div class="sc-sub">আজ পর্যন্ত</div><span class="sc-emoji">📅</span></div>
+    <div class="stat-card sc-debt"><div class="sc-label">🤝 নেট বকেয়া</div><div class="sc-amount" id="m-debt">৳ ০</div><div class="sc-sub" id="m-debt-sub">হিসাব নেই</div><span class="sc-emoji">🤝</span></div>
+    <div class="stat-card sc-bal"><div class="sc-label">💳 নেট ব্যালেন্স</div><div class="sc-amount" id="m-balance">৳ ০</div><div class="sc-sub">আয় − খরচ − সঞ্চয়</div><span class="sc-emoji">💳</span></div>
+  </div>
+
+  <!-- PAGES -->
+
+  <!-- DASHBOARD -->
+  <div id="dash-pg" class="app-page active-page">
+    <div class="section">
+      <h3>📊 মাসিক অগ্রগতি</h3>
+      <div class="prog-wrap">
+        <div class="prog-label"><span>খরচ vs আয়</span><span id="prog-pct">০%</span></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div id="budget-prog-wrap" style="display:none;margin-top:10px">
+        <div class="prog-label"><span>বাজেট ব্যবহার</span><span id="budget-prog-pct">০%</span></div>
+        <div class="prog-bar"><div class="prog-fill" id="budget-prog-fill" style="width:0%;background:var(--amber)"></div></div>
+      </div>
+      <div style="margin-top:14px;position:relative;height:200px"><canvas id="lifeChart"></canvas></div>
+    </div>
+    <div class="section" style="margin-top:14px">
+      <h3>📈 মাসভিত্তিক আয় vs খরচ</h3>
+      <div style="position:relative;height:200px"><canvas id="monthChart"></canvas></div>
+    </div>
+    <div class="workspace-grid" style="margin-top:14px">
+      <div class="section">
+        <h3>🕐 সাম্প্রতিক লেনদেন</h3>
+        <div class="list-group" id="recentBox"></div>
+      </div>
+      <div class="section">
+        <h3>✏️ স্ক্র্যাচপ্যাড</h3>
+        <textarea class="scratchpad-textarea" id="scratchpad" placeholder="গুরুত্বপূর্ণ নোট লিখুন..." oninput="saveScratch()"></textarea>
+        <div style="margin-top:10px">
+          <div class="salary-bar">
+            <span style="font-size:12px;color:var(--green)">💰 বেতন: <strong id="salary-show-val">সেট করা হয়নি</strong></span>
+            <button class="btn btn-green" style="padding:5px 10px;font-size:11px" onclick="openModal('salaryModal')">✏️ সেট</button>
+          </div>
+          <div class="budget-section" style="margin-top:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:12px;color:var(--amber)">💰 বাজেট: <strong id="budget-show-val">সেট নেই</strong></span>
+              <button class="btn btn-amber" style="padding:5px 10px;font-size:11px" onclick="openModal('budgetModal')">✏️ সেট</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASSWORD VAULT -->
+  <div id="acc-pg" class="app-page">
+    <div class="workspace-grid">
+      <div class="section">
+        <h3>🔐 নতুন অ্যাকাউন্ট যোগ</h3>
+        <form id="formAccount">
+          <div class="form-group"><label>প্ল্যাটফর্ম</label>
+            <select class="form-control" id="a-platform">
+              <option value="facebook">📘 Facebook</option><option value="google">🔴 Google</option>
+              <option value="tiktok">🎵 TikTok</option><option value="other">🌐 অন্যান্য</option>
+            </select>
+          </div>
+          <div class="form-group"><label>অ্যাকাউন্টের নাম</label><input type="text" class="form-control" id="a-title" placeholder="যেমন: Personal FB" required></div>
+          <div class="form-group"><label>ইউজারনেম / ইমেইল</label><input type="text" class="form-control" id="a-user" placeholder="example@gmail.com" required></div>
+          <div class="form-group"><label>🔑 পাসওয়ার্ড</label><input type="text" class="form-control" id="a-pass" placeholder="পাসওয়ার্ড" required></div>
+          <div class="form-group"><label>📝 নোট</label><input type="text" class="form-control" id="a-note" placeholder="অতিরিক্ত তথ্য"></div>
+          <button type="submit" class="btn btn-purple" style="width:100%">🔒 ভল্টে সংরক্ষণ</button>
+        </form>
+      </div>
+      <div class="section"><h3>📋 সংরক্ষিত ভল্ট</h3><div class="list-group" id="accountListBox"></div></div>
+    </div>
+  </div>
+
+  <!-- INCOME -->
+  <div id="inc-pg" class="app-page">
+    <div class="section" style="max-width:560px;margin:0 auto">
+      <h3>💰 নগদ আয় এন্ট্রি</h3>
+      <form id="formIncome">
+        <div class="form-group"><label>আয়ের বিবরণ</label><input type="text" class="form-control" id="i-cat" placeholder="যেমন: স্যালারি, প্রজেক্ট" required></div>
+        <div class="form-group"><label>💳 ওয়ালেট</label>
+          <select class="form-control" id="i-wallet"><option>💵 হার্ড ক্যাশ</option><option>📱 বিকাশ</option><option>📱 নগদ</option><option>🏦 ব্যাংক</option><option>💳 কার্ড</option></select>
+        </div>
+        <div class="form-group"><label>৳ পরিমাণ</label><input type="number" class="form-control" id="i-amt" placeholder="০" min="0" required></div>
+        <div class="form-group"><label>📅 তারিখ</label><input type="date" class="form-control" id="i-date"></div>
+        <div class="form-group"><label>📝 নোট</label><input type="text" class="form-control" id="i-note" placeholder="অতিরিক্ত তথ্য"></div>
+        <button type="submit" class="btn btn-green" style="width:100%">✅ আয় রেকর্ড করুন</button>
+      </form>
+      <div style="margin-top:16px"><h4 style="font-size:13px;font-weight:600;margin-bottom:10px">📋 আয়ের তালিকা</h4><div class="list-group" id="incomeListBox"></div></div>
+    </div>
+  </div>
+
+  <!-- EXPENSE -->
+  <div id="exp-pg" class="app-page">
+    <div class="section" style="max-width:560px;margin:0 auto">
+      <h3>💸 নগদ খরচ এন্ট্রি</h3>
+      <form id="formExpense">
+        <div class="form-group"><label>📂 খরচের খাত</label>
+          <select class="form-control" id="e-cat">
+            <option>🍽️ বাজার ও খাবার</option><option>🚗 যাতায়াত ও ফুয়েল</option>
+            <option>🛍️ শপিং ও লাইফস্টাইল</option><option>🏠 ইউটিলিটি ও ভাড়া</option>
+            <option>📱 মোবাইল ও ইন্টারনেট</option><option>🏥 স্বাস্থ্য ও চিকিৎসা</option>
+            <option>📚 শিক্ষা ও বই</option><option>🎉 বিনোদন</option><option>💼 অন্যান্য</option>
+          </select>
+        </div>
+        <div class="form-group"><label>👤 খরচের ধরন</label>
+          <select class="form-control" id="e-type">
+            <option value="self">🙋 নিজের খরচ</option><option value="family">👨‍👩‍👧 ফ্যামিলি খরচ</option><option value="other">👥 অন্যের খরচ</option>
+          </select>
+        </div>
+        <div class="form-group"><label>💳 পেমেন্ট মাধ্যম</label>
+          <select class="form-control" id="e-wallet"><option>💵 হার্ড ক্যাশ</option><option>📱 বিকাশ</option><option>📱 নগদ</option><option>🏦 ব্যাংক</option><option>💳 কার্ড</option></select>
+        </div>
+        <div class="form-group"><label>৳ পরিমাণ</label><input type="number" class="form-control" id="e-amt" placeholder="০" min="0" required></div>
+        <div class="form-group"><label>📅 তারিখ</label><input type="date" class="form-control" id="e-date"></div>
+        <div class="form-group"><label>📝 নোট</label><input type="text" class="form-control" id="e-note" placeholder="অতিরিক্ত তথ্য"></div>
+        <button type="submit" class="btn btn-red" style="width:100%">➖ খরচ রেকর্ড করুন</button>
+      </form>
+      <div style="margin-top:16px">
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="f-btn active" id="ef-all" onclick="filterExp('all',this)">🔄 সব</button>
+          <button class="f-btn" onclick="filterExp('self',this)">🙋 নিজের</button>
+          <button class="f-btn" onclick="filterExp('family',this)">👨‍👩‍👧 ফ্যামিলি</button>
+          <button class="f-btn" onclick="filterExp('other',this)">👥 অন্যের</button>
+        </div>
+        <div class="list-group" id="expenseListBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEBT -->
+  <div id="debt-pg" class="app-page">
+    <div class="workspace-grid">
+      <div class="section">
+        <h3>🤝 ধার-দেনা এন্ট্রি</h3>
+        <form id="formDebt">
+          <div class="form-group"><label>👤 ব্যক্তির নাম</label><input type="text" class="form-control" id="d-name" placeholder="যেমন: রহিম ভাই" required></div>
+          <div class="form-group"><label>📌 ধরন</label>
+            <select class="form-control" id="d-type"><option value="take">🔴 আমি ধার নিয়েছি</option><option value="give">🟢 আমি ধার দিয়েছি</option></select>
+          </div>
+          <div class="form-group"><label>৳ পরিমাণ</label><input type="number" class="form-control" id="d-amt" placeholder="০" min="0" required></div>
+          <div class="form-group"><label>📅 তারিখ</label><input type="date" class="form-control" id="d-date"></div>
+          <div class="form-group"><label>📝 নোট</label><input type="text" class="form-control" id="d-note" placeholder="কারণ বা তথ্য"></div>
+          <button type="submit" class="btn btn-amber" style="width:100%">➕ লোন রেকর্ড করুন</button>
+        </form>
+      </div>
+      <div class="section"><h3>📋 রানিং লোন</h3><div class="list-group" id="debtListBox"></div></div>
+    </div>
+  </div>
+
+  <!-- SAVINGS -->
+  <div id="save-pg" class="app-page">
+    <div class="workspace-grid">
+      <div class="section">
+        <h3>🏦 নতুন সঞ্চয় যোগ</h3>
+        <form id="formSavings">
+          <div class="form-group"><label>🎯 সঞ্চয়ের লক্ষ্য</label><input type="text" class="form-control" id="s-goal" placeholder="যেমন: আপদকালীন ফান্ড" required></div>
+          <div class="form-group"><label>৳ পরিমাণ</label><input type="number" class="form-control" id="s-amt" placeholder="০" min="0" required></div>
+          <div class="form-group"><label>📅 তারিখ</label><input type="date" class="form-control" id="s-date"></div>
+          <div class="form-group"><label>📝 নোট</label><input type="text" class="form-control" id="s-note" placeholder="অতিরিক্ত তথ্য"></div>
+          <button type="submit" class="btn btn-purple" style="width:100%">🔒 সঞ্চয় লক করুন</button>
+        </form>
+      </div>
+      <div class="section"><h3>💼 সঞ্চয় ভল্ট</h3><div class="list-group" id="savingsListBox"></div></div>
+    </div>
+  </div>
+
+  <!-- CONVERTER -->
+  <div id="conv-pg" class="app-page">
+    <div class="section" style="max-width:500px;margin:0 auto">
+      <h3>🔄 কারেন্সি কনভার্টার <span style="font-size:10px;color:var(--green);font-weight:normal">● লাইভ রেট</span></h3>
+      <div class="converter-box">
+        <div class="conv-row">
+          <input type="number" class="form-control" id="conv-amt" placeholder="পরিমাণ" style="flex:1" oninput="doConvert()">
+          <select class="form-control" id="conv-from" style="flex:1" onchange="doConvert()">
+            <option value="QAR">🇶🇦 QAR</option><option value="USD">💵 USD</option>
+            <option value="SAR">🇸🇦 SAR</option><option value="AED">🇦🇪 AED</option>
+            <option value="EUR">💶 EUR</option><option value="GBP">🇬🇧 GBP</option>
+            <option value="KWD">🇰🇼 KWD</option><option value="BHD">🇧🇭 BHD</option>
+            <option value="MYR">🇲🇾 MYR</option><option value="SGD">🇸🇬 SGD</option>
+            <option value="JPY">🇯🇵 JPY</option><option value="CAD">🇨🇦 CAD</option>
+            <option value="AUD">🇦🇺 AUD</option><option value="CHF">🇨🇭 CHF</option>
+            <option value="BDT">🇧🇩 BDT</option>
+          </select>
+        </div>
+        <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:6px">⬇ বাংলাদেশি টাকায়</div>
+        <div class="conv-result" id="conv-result">৳ ০</div>
+        <div class="conv-rate" id="conv-rate">রেট লোড হচ্ছে...</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px" id="rate-updated"></div>
+      </div>
+      <h4 style="font-size:13px;font-weight:600;margin-bottom:10px">📊 বর্তমান রেট (→ BDT)</h4>
+      <div id="rate-table"></div>
+    </div>
+  </div>
+
+  <!-- HUB -->
+  <div id="hub-pg" class="app-page">
+    <div class="section"><h3>🧩 অল মডিউলস হাব</h3>
+      <div class="hub-grid">
+        <div class="hub-card" onclick="nav('inc-pg',null,'💰 নগদ আয়')"><div class="hc-emoji">💰</div>আয় যোগ</div>
+        <div class="hub-card" onclick="nav('exp-pg',null,'💸 নগদ খরচ')"><div class="hc-emoji">💸</div>খরচ যোগ</div>
+        <div class="hub-card" onclick="nav('debt-pg',null,'🤝 ধার-দেনা')"><div class="hc-emoji">🤝</div>ধার-দেনা</div>
+        <div class="hub-card" onclick="nav('save-pg',null,'🏦 সঞ্চয়')"><div class="hc-emoji">🏦</div>সঞ্চয়</div>
+        <div class="hub-card" onclick="nav('acc-pg',null,'🔐 পাসওয়ার্ড')"><div class="hc-emoji">🔐</div>পাসওয়ার্ড</div>
+        <div class="hub-card" onclick="nav('conv-pg',null,'🔄 কনভার্টার')"><div class="hc-emoji">🔄</div>কনভার্টার</div>
+        <div class="hub-card" onclick="nav('ledger-pg',null,'📋 লেজার')"><div class="hc-emoji">📋</div>লেজার</div>
+        <div class="hub-card" onclick="generatePDF()"><div class="hc-emoji">📄</div>Statement</div>
+        <div class="hub-card" onclick="nav('backup-pg',null,'🛡️ ব্যাকআপ')"><div class="hc-emoji">🛡️</div>ব্যাকআপ</div>
+        <div class="hub-card" onclick="nav('about-pg',null,'ℹ️ সম্পর্কে')"><div class="hc-emoji">ℹ️</div>সম্পর্কে</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEDGER -->
+  <div id="ledger-pg" class="app-page">
+    <div class="section"><h3>📋 মাস্টার লেজার বুক</h3>
+      <div style="overflow-x:auto">
+        <table class="custom-table">
+          <thead><tr><th>বিবরণ</th><th>ধরন</th><th>টাইপ</th><th>ওয়ালেট</th><th>তারিখ</th><th>নোট</th><th style="text-align:right">৳ পরিমাণ</th><th>অ্যাকশন</th></tr></thead>
+          <tbody id="masterLedgerBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- BACKUP -->
+  <div id="backup-pg" class="app-page">
+    <div class="section" style="max-width:560px;margin:0 auto;text-align:center">
+      <h3 style="justify-content:center">🛡️ ব্যাকআপ ও রিস্টোর</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:20px">সব ডেটা শুধু আপনার ডিভাইসে। ক্লাউডে কিছু যায় না।</p>
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
+        <button class="btn btn-green" onclick="exportDB()">⬇️ ব্যাকআপ ডাউনলোড</button>
+        <div style="border-top:1px dashed var(--border);width:100%;padding-top:16px">
+          <p style="font-size:12px;color:var(--muted);margin-bottom:10px">পুরনো ব্যাকআপ রিস্টোর:</p>
+          <input type="file" id="importFile" class="form-control" style="max-width:300px;margin:0 auto 12px" accept=".json">
+          <button class="btn btn-blue" onclick="importDB()">⬆️ ডেটা রিস্টোর</button>
+        </div>
+        <div style="border-top:1px dashed var(--border);width:100%;padding-top:16px">
+          <p style="font-size:12px;color:var(--amber);margin-bottom:10px">🔒 PIN লক সিস্টেম</p>
+          <div id="lock-status-box" style="font-size:13px;color:var(--muted);margin-bottom:10px"></div>
+          <button id="lock-toggle-btn" class="btn" onclick="toggleLock()" style="margin-bottom:6px"></button>
+        </div>
+        <div style="border-top:1px dashed var(--border);width:100%;padding-top:16px">
+          <p style="font-size:12px;color:var(--amber);margin-bottom:10px">🔐 PIN পরিবর্তন</p>
+          <button class="btn btn-amber" onclick="openModal('pinChangeModal')">🔑 নতুন PIN সেট করুন</button>
+        </div>
+        <div style="border-top:1px dashed var(--border);width:100%;padding-top:16px">
+          <p style="font-size:12px;color:var(--purple);margin-bottom:10px">🛡️ Security Question</p>
+          <button class="btn btn-purple" onclick="openModal('sqModal')">🛡️ Security Question সেট</button>
+        </div>
+        <div style="border-top:1px dashed var(--border);width:100%;padding-top:16px">
+          <p style="font-size:12px;color:var(--red);margin-bottom:10px">⚠️ বিপদজনক জোন</p>
+          <button class="btn" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.3)" onclick="clearAllData()">🗑️ সব ডেটা রিসেট</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div id="about-pg" class="app-page">
+    <div class="section" style="max-width:500px;margin:0 auto">
+      <h3>ℹ️ অ্যাপ সম্পর্কে</h3>
+      <div style="text-align:center;padding:10px 0 20px">
+        <img src="https://i.supaimg.com/a70e0b4d-ffa6-4746-9194-5434effbd1b0/a959ff02-aab3-4a73-ad69-53407e1dbaac.png" class="about-logo" onerror="this.style.display='none'">
+        <div style="font-size:19px;font-weight:800;color:var(--green);margin-bottom:4px">স্বাধীন হিসাব PRO</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:18px">হিসাব রাখুন • উন্নতি করুন</div>
+      </div>
+      <div class="contact-row"><div class="ci" style="background:rgba(16,185,129,0.15)">👨‍💻</div><div><div style="font-size:11px;color:var(--muted)">Developer</div><div style="font-weight:600">MD SHADHIN SARKER</div></div></div>
+      <div class="contact-row"><div class="ci" style="background:rgba(37,211,102,0.15)">💬</div><div><div style="font-size:11px;color:var(--muted)">WhatsApp</div><div style="font-weight:600">+8801780631505</div></div></div>
+      <div class="contact-row"><div class="ci" style="background:rgba(41,182,246,0.15)">✈️</div><div><div style="font-size:11px;color:var(--muted)">Telegram</div><div style="font-weight:600">@Secret_Trader_BD</div></div></div>
+      <div style="text-align:center;margin-top:16px;padding:14px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px solid var(--border)">
+        <p style="font-size:12px;color:var(--muted)">আপনি চাইলে আপনার পার্সোনাল এমন ওয়েব বা অ্যাপ বানাতে পারবেন।</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main -->
+</div><!-- end app-body -->
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav-bar">
+  <div class="mobile-nav-item active" id="mn-dash" onclick="nav('dash-pg',this,'🏠 ড্যাশবোর্ড')"><div class="mn-emoji">🏠</div>হোম</div>
+  <div class="mobile-nav-item" onclick="nav('inc-pg',this,'💰 আয়')"><div class="mn-emoji">💰</div>আয়</div>
+  <div class="mobile-nav-item" onclick="nav('exp-pg',this,'💸 খরচ')"><div class="mn-emoji">💸</div>খরচ</div>
+  <div class="mobile-nav-item" onclick="nav('conv-pg',this,'🔄 কনভার্টার')"><div class="mn-emoji">🔄</div>কনভার্টার</div>
+  <div class="mobile-nav-item" onclick="toggleSidebar()"><div class="mn-emoji">☰</div>মেনু</div>
+</div>
+
+<!-- BOTTOM AD -->
+<div class="ad-bar">
+  <div class="ad-wrap">
+    <span>💡 আপনি চাইলে আপনার পার্সোনাল এমন ওয়েব বা অ্যাপ বানাতে পারবেন।</span>
+    <span class="ad-name">👨‍💻 Developer: MD SHADHIN SARKER</span>
+    <span>💬 WhatsApp: <span class="ad-link">+8801780631505</span></span>
+    <span>✈️ Telegram: <span class="ad-link">@Secret_Trader_BD</span></span>
+    <span>💡 আপনি চাইলে আপনার পার্সোনাল এমন ওয়েব বা অ্যাপ বানাতে পারবেন।</span>
+    <span class="ad-name">👨‍💻 Developer: MD SHADHIN SARKER</span>
+    <span>💬 WhatsApp: <span class="ad-link">+8801780631505</span></span>
+    <span>✈️ Telegram: <span class="ad-link">@Secret_Trader_BD</span></span>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <h3>✏️ এন্ট্রি এডিট করুন</h3>
+    <input type="hidden" id="edit-type"><input type="hidden" id="edit-id">
+    <div class="form-group"><label>বিবরণ / নাম</label><input type="text" class="form-control" id="edit-desc"></div>
+    <div id="edit-wallet-row" class="form-group"><label>ওয়ালেট</label><input type="text" class="form-control" id="edit-wallet"></div>
+    <div id="edit-exptype-row" class="form-group"><label>খরচের ধরন</label>
+      <select class="form-control" id="edit-exptype">
+        <option value="self">🙋 নিজের</option><option value="family">👨‍👩‍👧 ফ্যামিলি</option><option value="other">👥 অন্যের</option>
+      </select>
+    </div>
+    <div class="form-group"><label>৳ পরিমাণ</label><input type="number" class="form-control" id="edit-amount"></div>
+    <div class="form-group"><label>📅 তারিখ</label><input type="date" class="form-control" id="edit-date"></div>
+    <div class="form-group"><label>📝 নোট</label><input type="text" class="form-control" id="edit-note"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('editModal')">বাতিল</button>
+      <button class="btn btn-green" onclick="saveEdit()">✅ সেভ করুন</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="salaryModal">
+  <div class="modal-box">
+    <h3>💰 মাসিক বেতন সেট করুন</h3>
+    <div class="form-group"><label>মাসিক বেতন (৳)</label><input type="number" class="form-control" id="salary-input" placeholder="০"></div>
+    <div class="form-group"><label>প্রতি মাসে কততারিখে আসে?</label><input type="number" class="form-control" id="salary-day" placeholder="১–৩১" min="1" max="31"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('salaryModal')">বাতিল</button>
+      <button class="btn btn-green" onclick="saveSalary()">✅ সেভ করুন</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="budgetModal">
+  <div class="modal-box">
+    <h3>💰 মাসিক বাজেট সেট করুন</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">এই সীমা পার হলে সতর্কবার্তা দেখাবে।</p>
+    <div class="form-group"><label>মাসিক বাজেট সীমা (৳)</label><input type="number" class="form-control" id="budget-input" placeholder="০"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('budgetModal')">বাতিল</button>
+      <button class="btn btn-amber" onclick="saveBudget()">✅ সেভ করুন</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pinChangeModal">
+  <div class="modal-box">
+    <h3>🔑 নতুন PIN সেট করুন</h3>
+    <div class="form-group"><label>নতুন ৪ সংখ্যার PIN</label><input type="password" class="form-control" id="new-pin" placeholder="••••" maxlength="4"></div>
+    <div class="form-group"><label>PIN নিশ্চিত করুন</label><input type="password" class="form-control" id="conf-pin" placeholder="••••" maxlength="4"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('pinChangeModal')">বাতিল</button>
+      <button class="btn btn-green" onclick="saveNewPin()">✅ সেভ করুন</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sqModal">
+  <div class="modal-box">
+    <h3>🛡️ Security Question সেট করুন</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">PIN ভুললে এই প্রশ্নের উত্তর দিয়ে ফিরে আসতে পারবেন।</p>
+    <div class="form-group"><label>প্রশ্ন বেছে নিন</label>
+      <select class="form-control" id="sq-question-select" onchange="document.getElementById('sq-custom-row').style.display=this.value==='custom'?'block':'none'">
+        <option value="আপনার মায়ের নাম কি?">আপনার মায়ের নাম কি?</option>
+        <option value="আপনার প্রাথমিক বিদ্যালয়ের নাম কি?">আপনার প্রাথমিক বিদ্যালয়ের নাম কি?</option>
+        <option value="আপনার প্রিয় রঙ কি?">আপনার প্রিয় রঙ কি?</option>
+        <option value="আপনার জন্মশহর কোনটি?">আপনার জন্মশহর কোনটি?</option>
+        <option value="custom">✏️ নিজে লিখুন...</option>
+      </select>
+    </div>
+    <div id="sq-custom-row" class="form-group" style="display:none"><label>নিজের প্রশ্ন</label><input type="text" class="form-control" id="sq-custom-q" placeholder="প্রশ্ন লিখুন..."></div>
+    <div class="form-group"><label>উত্তর</label><input type="text" class="form-control" id="sq-answer-set" placeholder="উত্তর লিখুন"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('sqModal')">বাতিল</button>
+      <button class="btn btn-purple" onclick="saveSQ()">✅ সেভ করুন</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+let S = JSON.parse(localStorage.getItem('SH_PRO_V2')) || {
+  income:[], expense:[], debts:[], savings:[], accounts:[],
+  scratchpad:'', userName:'প্রো ইউজার', userRole:'চিফ একজিকিউটিভ',
+  salary:0, salaryDay:1, budget:0,
+  pin:'1234', pinSet:true, lockEnabled:false,
+  sqQuestion:'', sqAnswer:''
+};
+
+// Fix: ensure lockEnabled is defined and default false
+if(typeof S.lockEnabled === 'undefined') S.lockEnabled = false;
+if(typeof S.pinSet === 'undefined') S.pinSet = true;
+
+function save(){ localStorage.setItem('SH_PRO_V2', JSON.stringify(S)); }
+
+let rates = {};
+let pinInput = '';
+
+// ===== BOOT =====
+window.onload = function(){
+  if(S.lockEnabled){
+    document.getElementById('pin-screen').style.display = 'flex';
+    if(S.sqQuestion) document.getElementById('pin-forgot').style.display = 'block';
+  } else {
+    initApp();
+  }
+  initCharts();
+};
+
+// ===== PIN =====
+function pinKey(k){
+  if(!k) return;
+  if(pinInput.length >= 4) return;
+  pinInput += k;
+  updateDots();
+  if(pinInput.length === 4) setTimeout(checkPin, 150);
+}
+function pinDel(){ pinInput = pinInput.slice(0,-1); updateDots(); }
+function updateDots(){ for(let i=0;i<4;i++) document.getElementById('pd'+i).classList.toggle('filled', i<pinInput.length); }
+function checkPin(){
+  if(pinInput === S.pin){
+    document.getElementById('pin-screen').style.display = 'none';
+    initApp();
+  } else {
+    document.getElementById('pin-err').textContent = '❌ ভুল PIN! আবার চেষ্টা করুন।';
+    pinInput = ''; updateDots();
+    setTimeout(()=>document.getElementById('pin-err').textContent='', 2000);
+  }
+}
+
+// ===== SQ =====
+function showSQScreen(){
+  if(!S.sqQuestion){ alert('Security Question সেট করা নেই।'); return; }
+  document.getElementById('sq-question-display').textContent = S.sqQuestion;
+  document.getElementById('sq-screen').style.display = 'flex';
+}
+function hideSQScreen(){
+  document.getElementById('sq-screen').style.display = 'none';
+  document.getElementById('sq-answer-input').value = '';
+  document.getElementById('sq-err').textContent = '';
+}
+function checkSQAnswer(){
+  const ans = document.getElementById('sq-answer-input').value.trim().toLowerCase();
+  if(ans === S.sqAnswer.toLowerCase()){
+    hideSQScreen();
+    const np = prompt('উত্তর সঠিক! নতুন PIN দিন (৪ সংখ্যা):');
+    if(np && np.length===4 && /^\d{4}$/.test(np)){
+      S.pin=np; save(); alert('✅ PIN রিসেট হয়েছে!');
+    }
+  } else {
+    document.getElementById('sq-err').textContent = '❌ উত্তর ভুল!';
+    setTimeout(()=>document.getElementById('sq-err').textContent='', 2500);
+  }
+}
+function saveSQ(){
+  let q = document.getElementById('sq-question-select').value;
+  if(q==='custom') q = document.getElementById('sq-custom-q').value.trim();
+  const a = document.getElementById('sq-answer-set').value.trim();
+  if(!q||!a){ alert('প্রশ্ন ও উত্তর দিন।'); return; }
+  S.sqQuestion=q; S.sqAnswer=a; save();
+  closeModal('sqModal'); alert('✅ Security Question সেট হয়েছে!');
+}
+
+// ===== LOCK TOGGLE =====
+function toggleLock(){
+  if(!S.lockEnabled){
+    S.lockEnabled = true; save();
+    alert('✅ PIN লক চালু! পরের বার PIN লাগবে।');
+  } else {
+    S.lockEnabled = false; save();
+    alert('🔓 PIN লক বন্ধ।');
+  }
+  renderLockStatus();
+}
+function renderLockStatus(){
+  const btn = document.getElementById('lock-toggle-btn');
+  const box = document.getElementById('lock-status-box');
+  if(!btn||!box) return;
+  if(S.lockEnabled){
+    box.innerHTML='🔒 লক <span style="color:var(--green);font-weight:700">চালু</span>';
+    btn.textContent='🔓 লক বন্ধ করুন';
+    btn.style.cssText='background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.3);padding:9px 15px;border-radius:7px;cursor:pointer;font-size:12.5px;font-weight:600';
+  } else {
+    box.innerHTML='🔓 লক <span style="color:var(--red);font-weight:700">বন্ধ</span>';
+    btn.textContent='🔒 লক চালু করুন';
+    btn.style.cssText='background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.3);padding:9px 15px;border-radius:7px;cursor:pointer;font-size:12.5px;font-weight:600';
+  }
+}
+
+// ===== PIN CHANGE =====
+function saveNewPin(){
+  const np=document.getElementById('new-pin').value;
+  const cp=document.getElementById('conf-pin').value;
+  if(np.length!==4||!/^\d{4}$/.test(np)) return alert('PIN ৪ সংখ্যার হতে হবে!');
+  if(np!==cp) return alert('PIN মিলছে না!');
+  S.pin=np; S.pinSet=true; save();
+  closeModal('pinChangeModal'); alert('✅ PIN পরিবর্তন হয়েছে!');
+}
+
+// ===== INIT =====
+function initApp(){
+  initProfile();
+  setDate();
+  setDefaultDates();
+  render();
+  loadTicker();
+  setInterval(loadTicker, 120000);
+  checkSalaryAutoEntry();
+}
+
+function setDate(){
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('bn-BD',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+function setDefaultDates(){
+  const t = new Date().toISOString().split('T')[0];
+  ['i-date','e-date','d-date','s-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=t;});
+}
+
+function initProfile(){
+  document.getElementById('user-name').textContent = S.userName;
+  document.getElementById('user-role').textContent = S.userRole;
+  document.getElementById('profile-avatar').textContent = S.userName.substring(0,2).toUpperCase();
+  document.getElementById('scratchpad').value = S.scratchpad||'';
+  document.getElementById('salary-show-val').textContent = S.salary>0 ? '৳'+S.salary.toLocaleString()+' ('+S.salaryDay+' তারিখে)' : 'সেট করা হয়নি';
+  document.getElementById('budget-show-val').textContent = S.budget>0 ? '৳'+S.budget.toLocaleString() : 'সেট নেই';
+  renderLockStatus();
+}
+
+function changeProfile(){
+  const n=prompt('আপনার নাম:',S.userName); if(!n) return;
+  S.userName=n;
+  const r=prompt('পদবী:',S.userRole); if(r) S.userRole=r;
+  save(); initProfile();
+}
+function saveScratch(){ S.scratchpad=document.getElementById('scratchpad').value; save(); }
+
+// ===== SALARY =====
+function checkSalaryAutoEntry(){
+  if(!S.salary||S.salary<=0) return;
+  const today=new Date(); const todayDay=today.getDate();
+  const monthKey=today.getFullYear()+'-'+(today.getMonth()+1);
+  if(todayDay===S.salaryDay){
+    if(!S.income.some(i=>i.autoSalary&&i.monthKey===monthKey)){
+      S.income.push({id:Date.now(),desc:'মাসিক বেতন (Auto)',wallet:'🏦 ব্যাংক',amount:S.salary,note:'স্বয়ংক্রিয়',date:today.toISOString().split('T')[0],autoSalary:true,monthKey});
+      save(); render(); alert('✅ মাসিক বেতন ৳'+S.salary.toLocaleString()+' যোগ হয়েছে!');
+    }
+  }
+}
+function saveSalary(){
+  S.salary=parseFloat(document.getElementById('salary-input').value)||0;
+  S.salaryDay=parseInt(document.getElementById('salary-day').value)||1;
+  save(); initProfile(); closeModal('salaryModal');
+}
+function saveBudget(){
+  S.budget=parseFloat(document.getElementById('budget-input').value)||0;
+  save(); initProfile(); closeModal('budgetModal'); render();
+}
+
+// ===== FILTER =====
+let activeFilter='all', activeExpFilter='all';
+function setFilter(type,btn){
+  activeFilter=type;
+  document.querySelectorAll('.filter-bar .f-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  render();
+}
+function filterExp(type,btn){
+  activeExpFilter=type;
+  document.querySelectorAll('#exp-pg .f-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  render();
+}
+function applyDateFilter(arr){
+  if(activeFilter==='all') return arr;
+  const now=new Date();
+  return arr.filter(x=>{
+    if(!x.date) return activeFilter==='all';
+    const d=new Date(x.date);
+    if(activeFilter==='today') return d.toDateString()===now.toDateString();
+    if(activeFilter==='week'){const ws=new Date(now);ws.setDate(now.getDate()-now.getDay());return d>=ws;}
+    if(activeFilter==='month') return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+    if(activeFilter==='last'){const lm=new Date(now.getFullYear(),now.getMonth()-1,1);return d.getMonth()===lm.getMonth()&&d.getFullYear()===lm.getFullYear();}
+    return true;
+  });
+}
+
+// ===== SEARCH =====
+function doSearch(q){
+  const sr=document.getElementById('searchResults');
+  if(!q||!q.trim()){sr.style.display='none';return;}
+  q=q.toLowerCase();
+  const all=[
+    ...S.income.map(i=>({...i,txtype:'আয়'})),
+    ...S.expense.map(e=>({...e,txtype:'খরচ'})),
+    ...S.debts.map(d=>({...d,desc:d.name,txtype:'ধার'})),
+    ...S.savings.map(s=>({...s,desc:s.goal,txtype:'সঞ্চয়'}))
+  ];
+  const res=all.filter(x=>(x.desc||'').toLowerCase().includes(q)||(x.note||'').toLowerCase().includes(q)||(x.wallet||'').toLowerCase().includes(q));
+  sr.style.display='block';
+  sr.innerHTML=res.length===0?'<div class="empty-state">কোনো ফলাফল নেই।</div>':
+    '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">'+res.length+' টি ফলাফল</div>'+
+    res.slice(0,10).map(t=>`<div class="list-item" style="margin-bottom:6px">
+      <div class="li-info"><h4>${t.desc||''}</h4><p>${t.txtype}${t.wallet?' · '+t.wallet:''}</p><div class="li-date">📅 ${fmtDate(t.date)}</div></div>
+      <span style="font-weight:700;color:${t.txtype==='আয়'||t.txtype==='সঞ্চয়'?'var(--green)':'var(--red)'}">৳${(t.amount||0).toLocaleString()}</span>
+    </div>`).join('');
+}
+
+// ===== ROUTER =====
+function nav(pageId,el,title){
+  document.querySelectorAll('.app-page').forEach(p=>p.classList.remove('active-page'));
+  const pg=document.getElementById(pageId);
+  if(pg) pg.classList.add('active-page');
+  if(title) document.getElementById('page-title').textContent=title;
+  document.querySelectorAll('.nav-item,.mobile-nav-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.getElementById('appSidebar').classList.remove('mobile-open');
+  document.getElementById('sbOverlay').classList.remove('show');
+  render();
+}
+function toggleSidebar(){
+  const sb=document.getElementById('appSidebar');
+  if(window.innerWidth<=768){sb.classList.toggle('mobile-open');document.getElementById('sbOverlay').classList.toggle('show');}
+  else sb.classList.toggle('closed');
+}
+function closeMobileSidebar(){
+  document.getElementById('appSidebar').classList.remove('mobile-open');
+  document.getElementById('sbOverlay').classList.remove('show');
+}
+
+// ===== TICKER =====
+const TICK_CURR=['USD','QAR','SAR','AED','MYR','SGD','GBP','EUR','KWD','BHD','JPY'];
+async function loadTicker(){
+  try{
+    const [cr,rr]=await Promise.all([
+      fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd'),
+      fetch('https://open.er-api.com/v6/latest/BDT')
+    ]);
+    const cd=await cr.json(); const rd=await rr.json();
+    rates=rd.rates;
+    const b='$'+cd.bitcoin.usd.toLocaleString(), e='$'+cd.ethereum.usd.toLocaleString();
+    const setT=(id,cls,v)=>{const e1=document.getElementById(id);const e2=document.querySelector('.'+cls);if(e1)e1.textContent=v;if(e2)e2.textContent=v;};
+    setT('api-btc','btc2',b); setT('api-eth','eth2',e);
+    TICK_CURR.forEach(c=>{
+      const r=(1/(rates[c]||1)).toFixed(2);
+      setT('api-'+c.toLowerCase(),c.toLowerCase()+'2','৳'+r);
+    });
+    renderRateTable();
+    const ru=document.getElementById('rate-updated');
+    if(ru) ru.textContent='আপডেট: '+new Date().toLocaleTimeString('bn-BD');
+  }catch(err){}
+}
+
+function renderRateTable(){
+  const list=[
+    {c:'USD',f:'💵',n:'US Dollar'},{c:'QAR',f:'🇶🇦',n:'Qatar Riyal'},
+    {c:'SAR',f:'🇸🇦',n:'Saudi Riyal'},{c:'AED',f:'🇦🇪',n:'UAE Dirham'},
+    {c:'KWD',f:'🇰🇼',n:'Kuwait Dinar'},{c:'BHD',f:'🇧🇭',n:'Bahrain Dinar'},
+    {c:'EUR',f:'💶',n:'Euro'},{c:'GBP',f:'🇬🇧',n:'British Pound'},
+    {c:'MYR',f:'🇲🇾',n:'Malaysian Ringgit'},{c:'SGD',f:'🇸🇬',n:'Singapore Dollar'},
+    {c:'CAD',f:'🇨🇦',n:'Canadian Dollar'},{c:'AUD',f:'🇦🇺',n:'Australian Dollar'},
+    {c:'CHF',f:'🇨🇭',n:'Swiss Franc'},{c:'JPY',f:'🇯🇵',n:'Japanese Yen'},
+    {c:'TRY',f:'🇹🇷',n:'Turkish Lira'},{c:'INR',f:'🇮🇳',n:'Indian Rupee'}
+  ];
+  const el=document.getElementById('rate-table'); if(!el||!rates.USD) return;
+  el.innerHTML=list.map(({c,f,n})=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:13px">
+    <span>${f} ${c} <span style="color:var(--muted);font-size:11px">${n}</span></span>
+    <span style="color:var(--green);font-weight:700">৳ ${(1/(rates[c]||1)).toFixed(4)}</span>
+  </div>`).join('');
+}
+
+function doConvert(){
+  const amt=parseFloat(document.getElementById('conv-amt').value)||0;
+  const from=document.getElementById('conv-from').value;
+  if(!rates.USD){document.getElementById('conv-result').textContent='রেট লোড হচ্ছে...';return;}
+  const r=1/(rates[from]||1);
+  document.getElementById('conv-result').textContent='৳ '+(amt*r).toFixed(2);
+  document.getElementById('conv-rate').textContent='১ '+from+' = ৳ '+r.toFixed(4);
+}
+
+// ===== MODAL =====
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+// ===== FORMS =====
+document.getElementById('formAccount').addEventListener('submit',function(e){
+  e.preventDefault();
+  S.accounts.push({id:Date.now(),platform:document.getElementById('a-platform').value,title:document.getElementById('a-title').value,user:document.getElementById('a-user').value,pass:document.getElementById('a-pass').value,note:document.getElementById('a-note').value});
+  this.reset();save();render();
+});
+document.getElementById('formIncome').addEventListener('submit',function(e){
+  e.preventDefault();
+  S.income.push({id:Date.now(),desc:document.getElementById('i-cat').value,wallet:document.getElementById('i-wallet').value,amount:parseFloat(document.getElementById('i-amt').value)||0,date:document.getElementById('i-date').value,note:document.getElementById('i-note').value});
+  this.reset();setDefaultDates();save();render();nav('dash-pg',null,'🏠 ড্যাশবোর্ড');
+});
+document.getElementById('formExpense').addEventListener('submit',function(e){
+  e.preventDefault();
+  S.expense.push({id:Date.now(),desc:document.getElementById('e-cat').value,exptype:document.getElementById('e-type').value,wallet:document.getElementById('e-wallet').value,amount:parseFloat(document.getElementById('e-amt').value)||0,date:document.getElementById('e-date').value,note:document.getElementById('e-note').value});
+  this.reset();setDefaultDates();save();render();nav('dash-pg',null,'🏠 ড্যাশবোর্ড');
+});
+document.getElementById('formDebt').addEventListener('submit',function(e){
+  e.preventDefault();
+  S.debts.push({id:Date.now(),name:document.getElementById('d-name').value,type:document.getElementById('d-type').value,amount:parseFloat(document.getElementById('d-amt').value)||0,date:document.getElementById('d-date').value,note:document.getElementById('d-note').value});
+  this.reset();setDefaultDates();save();render();
+});
+document.getElementById('formSavings').addEventListener('submit',function(e){
+  e.preventDefault();
+  S.savings.push({id:Date.now(),goal:document.getElementById('s-goal').value,amount:parseFloat(document.getElementById('s-amt').value)||0,date:document.getElementById('s-date').value,note:document.getElementById('s-note').value});
+  this.reset();setDefaultDates();save();render();
+});
+
+// ===== DELETE =====
+function deleteIncome(id){if(confirm('মুছবেন?')){S.income=S.income.filter(x=>x.id!==id);save();render();}}
+function deleteExpense(id){if(confirm('মুছবেন?')){S.expense=S.expense.filter(x=>x.id!==id);save();render();}}
+function deleteDebt(id){if(confirm('মুছবেন?')){S.debts=S.debts.filter(x=>x.id!==id);save();render();}}
+function deleteSaving(id){if(confirm('মুছবেন?')){S.savings=S.savings.filter(x=>x.id!==id);save();render();}}
+function deleteAccount(id){if(confirm('মুছবেন?')){S.accounts=S.accounts.filter(x=>x.id!==id);save();render();}}
+
+// ===== EDIT =====
+function openEdit(type,id){
+  let item;
+  if(type==='income') item=S.income.find(x=>x.id===id);
+  else if(type==='expense') item=S.expense.find(x=>x.id===id);
+  else if(type==='debt') item=S.debts.find(x=>x.id===id);
+  else if(type==='saving') item=S.savings.find(x=>x.id===id);
+  if(!item) return;
+  document.getElementById('edit-type').value=type;
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-desc').value=item.desc||item.name||item.goal||'';
+  document.getElementById('edit-wallet').value=item.wallet||'';
+  document.getElementById('edit-amount').value=item.amount||'';
+  document.getElementById('edit-note').value=item.note||'';
+  document.getElementById('edit-date').value=item.date||'';
+  document.getElementById('edit-wallet-row').style.display=(type==='saving'||type==='debt')?'none':'block';
+  document.getElementById('edit-exptype-row').style.display=type==='expense'?'block':'none';
+  if(type==='expense') document.getElementById('edit-exptype').value=item.exptype||'self';
+  openModal('editModal');
+}
+function saveEdit(){
+  const type=document.getElementById('edit-type').value;
+  const id=parseInt(document.getElementById('edit-id').value);
+  const desc=document.getElementById('edit-desc').value;
+  const wallet=document.getElementById('edit-wallet').value;
+  const amount=parseFloat(document.getElementById('edit-amount').value)||0;
+  const note=document.getElementById('edit-note').value;
+  const date=document.getElementById('edit-date').value;
+  const exptype=document.getElementById('edit-exptype').value;
+  if(type==='income'){const i=S.income.find(x=>x.id===id);if(i){i.desc=desc;i.wallet=wallet;i.amount=amount;i.note=note;i.date=date;}}
+  else if(type==='expense'){const i=S.expense.find(x=>x.id===id);if(i){i.desc=desc;i.wallet=wallet;i.amount=amount;i.note=note;i.date=date;i.exptype=exptype;}}
+  else if(type==='debt'){const i=S.debts.find(x=>x.id===id);if(i){i.name=desc;i.amount=amount;i.note=note;i.date=date;}}
+  else if(type==='saving'){const i=S.savings.find(x=>x.id===id);if(i){i.goal=desc;i.amount=amount;i.note=note;i.date=date;}}
+  save();render();closeModal('editModal');
+}
+
+function togglePass(btn,p){
+  const s=btn.previousElementSibling;
+  if(s.classList.contains('pass-hidden')){s.textContent=p;s.classList.remove('pass-hidden');btn.innerHTML='<i class="fa-solid fa-eye-slash"></i>';}
+  else{s.textContent='••••••••';s.classList.add('pass-hidden');btn.innerHTML='<i class="fa-solid fa-eye"></i>';}
+}
+function expTypeBadge(t){
+  if(t==='self') return '<span class="exp-badge badge-self">🙋 নিজের</span>';
+  if(t==='family') return '<span class="exp-badge badge-family">👨‍👩‍👧 ফ্যামিলি</span>';
+  return '<span class="exp-badge badge-other">👥 অন্যের</span>';
+}
+function fmtDate(d){ if(!d) return '—'; const x=new Date(d); return x.getDate()+'/'+(x.getMonth()+1)+'/'+x.getFullYear(); }
+
+// ===== RENDER =====
+let lifeChart, monthChart;
+function render(){
+  save();
+  const today=new Date().toDateString();
+  const now=new Date();
+  const tm=now.getMonth(), ty=now.getFullYear();
+
+  const fInc=applyDateFilter(S.income);
+  const fExp=applyDateFilter(S.expense);
+  const tInc=fInc.reduce((s,x)=>s+x.amount,0);
+  const tExp=fExp.reduce((s,x)=>s+x.amount,0);
+  const tSav=S.savings.reduce((s,x)=>s+x.amount,0);
+  const todE=S.expense.filter(x=>x.date&&new Date(x.date).toDateString()===today).reduce((s,x)=>s+x.amount,0);
+  let dNet=0; S.debts.forEach(d=>{if(d.type==='take')dNet+=d.amount;else dNet-=d.amount;});
+  const mInc=S.income.filter(x=>x.date&&new Date(x.date).getMonth()===tm&&new Date(x.date).getFullYear()===ty).reduce((s,x)=>s+x.amount,0);
+  const mExp=S.expense.filter(x=>x.date&&new Date(x.date).getMonth()===tm&&new Date(x.date).getFullYear()===ty).reduce((s,x)=>s+x.amount,0);
+
+  // HERO
+  const bal=tInc-tExp;
+  document.getElementById('hero-balance').textContent='৳ '+bal.toLocaleString();
+  document.getElementById('hero-balance').style.color=bal>=0?'var(--green)':'var(--red)';
+  document.getElementById('hero-sub').textContent=bal>=0?'✅ ভালো অবস্থায় আছেন':'⚠️ ঘাটতি রয়েছে';
+  document.getElementById('hero-inc').textContent='৳ '+mInc.toLocaleString();
+  document.getElementById('hero-exp').textContent='৳ '+mExp.toLocaleString();
+
+  // WARNINGS
+  document.getElementById('warn-bar').style.display=(mExp>mInc&&mInc>0)?'flex':'none';
+  const bw=document.getElementById('budget-warn');
+  if(S.budget>0&&mExp>=S.budget*0.8){
+    bw.style.display='flex';
+    bw.textContent='⚠️ বাজেট সতর্কতা: মাসিক বাজেটের '+Math.round(mExp/S.budget*100)+'% খরচ হয়েছে!';
+  } else bw.style.display='none';
+
+  // PROGRESS
+  const pct=mInc>0?Math.min(Math.round(mExp/mInc*100),100):0;
+  document.getElementById('prog-pct').textContent=pct+'%';
+  const pf=document.getElementById('prog-fill');
+  pf.style.width=pct+'%'; pf.style.background=pct>80?'var(--red)':pct>60?'var(--amber)':'var(--green)';
+  const bpw=document.getElementById('budget-prog-wrap');
+  if(S.budget>0){
+    bpw.style.display='block';
+    const bp=Math.min(Math.round(mExp/S.budget*100),100);
+    document.getElementById('budget-prog-pct').textContent=bp+'%';
+    const bpf=document.getElementById('budget-prog-fill');
+    bpf.style.width=bp+'%'; bpf.style.background=bp>80?'var(--red)':'var(--amber)';
+  } else bpw.style.display='none';
+
+  // CARDS
+  document.getElementById('m-income').textContent='৳ '+tInc.toLocaleString();
+  document.getElementById('m-inc-c').textContent=fInc.length+' এন্ট্রি';
+  document.getElementById('m-expense').textContent='৳ '+tExp.toLocaleString();
+  document.getElementById('m-exp-c').textContent=fExp.length+' এন্ট্রি';
+  document.getElementById('m-saving').textContent='৳ '+tSav.toLocaleString();
+  document.getElementById('m-today').textContent='৳ '+todE.toLocaleString();
+  document.getElementById('m-debt').textContent='৳ '+Math.abs(dNet).toLocaleString();
+  document.getElementById('m-debt-sub').textContent=dNet>0?'(দিতে হবে)':dNet<0?'(পাবেন)':'সমান';
+  document.getElementById('m-balance').textContent='৳ '+(tInc-tExp-tSav).toLocaleString();
+
+  // ACCOUNTS
+  document.getElementById('accountListBox').innerHTML=S.accounts.length===0?'<div class="empty-state">🔐 ভল্ট খালি।</div>':
+    S.accounts.map(acc=>{
+      let lc='logo-other',ic='fa-solid fa-globe';
+      if(acc.platform==='facebook'){lc='logo-fb';ic='fa-brands fa-facebook-f';}
+      if(acc.platform==='google'){lc='logo-google';ic='fa-brands fa-google';}
+      if(acc.platform==='tiktok'){lc='logo-tiktok';ic='fa-brands fa-tiktok';}
+      const safePass = (acc.pass||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      return `<div class="list-item">
+        <div style="display:flex;align-items:center;gap:10px;overflow:hidden;flex:1">
+          <div class="acc-logo ${lc}"><i class="${ic}"></i></div>
+          <div style="overflow:hidden">
+            <div class="li-info"><h4>${acc.title}</h4><p>👤 ${acc.user}</p></div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+              <span class="pass-hidden" style="color:var(--green);font-weight:600">••••••••</span>
+              <button class="btn" style="padding:2px 7px;font-size:10px;background:rgba(255,255,255,0.06)" onclick="togglePass(this,'${safePass}')"><i class="fa-solid fa-eye"></i></button>
+            </div>
+            ${acc.note?`<p style="font-size:10px;color:var(--muted);margin-top:2px">📝 ${acc.note}</p>`:''}
+          </div>
+        </div>
+        <div class="li-actions"><button class="btn btn-danger" onclick="deleteAccount(${acc.id})">🗑️</button></div>
+      </div>`;
+    }).join('');
+
+  // INCOME LIST
+  document.getElementById('incomeListBox').innerHTML=fInc.length===0?'<div class="empty-state">💰 কোনো আয় নেই।</div>':
+    fInc.slice().reverse().map(i=>`<div class="list-item">
+      <div class="li-info"><h4>${i.desc}</h4><p>${i.wallet}${i.note?' · '+i.note:''}</p><div class="li-date">📅 ${fmtDate(i.date)}</div></div>
+      <div class="li-actions"><span style="color:var(--green);font-weight:700;font-size:13px">৳${i.amount.toLocaleString()}</span>
+      <button class="btn btn-edit" onclick="openEdit('income',${i.id})">✏️</button>
+      <button class="btn btn-danger" onclick="deleteIncome(${i.id})">🗑️</button></div>
+    </div>`).join('');
+
+  // EXPENSE LIST
+  const expF=activeExpFilter==='all'?fExp:fExp.filter(x=>(x.exptype||'self')===activeExpFilter);
+  document.getElementById('expenseListBox').innerHTML=expF.length===0?'<div class="empty-state">💸 কোনো খরচ নেই।</div>':
+    expF.slice().reverse().map(e=>`<div class="list-item">
+      <div class="li-info"><h4>${e.desc} ${expTypeBadge(e.exptype||'self')}</h4><p>${e.wallet}${e.note?' · '+e.note:''}</p><div class="li-date">📅 ${fmtDate(e.date)}</div></div>
+      <div class="li-actions"><span style="color:var(--red);font-weight:700;font-size:13px">৳${e.amount.toLocaleString()}</span>
+      <button class="btn btn-edit" onclick="openEdit('expense',${e.id})">✏️</button>
+      <button class="btn btn-danger" onclick="deleteExpense(${e.id})">🗑️</button></div>
+    </div>`).join('');
+
+  // DEBT
+  document.getElementById('debtListBox').innerHTML=S.debts.length===0?'<div class="empty-state">🤝 কোনো লোন নেই।</div>':
+    S.debts.slice().reverse().map(d=>`<div class="list-item">
+      <div class="li-info"><h4>${d.name}</h4><p>${d.type==='take'?'🔴 দিতে হবে':'🟢 পাবেন'}${d.note?' · '+d.note:''}</p><div class="li-date">📅 ${fmtDate(d.date)}</div></div>
+      <div class="li-actions"><span style="color:${d.type==='take'?'var(--red)':'var(--green)'};font-weight:700;font-size:13px">${d.type==='take'?'-':'+'} ৳${d.amount.toLocaleString()}</span>
+      <button class="btn btn-edit" onclick="openEdit('debt',${d.id})">✏️</button>
+      <button class="btn btn-danger" onclick="deleteDebt(${d.id})">🗑️</button></div>
+    </div>`).join('');
+
+  // SAVINGS
+  document.getElementById('savingsListBox').innerHTML=S.savings.length===0?'<div class="empty-state">🏦 সঞ্চয় শূন্য।</div>':
+    S.savings.slice().reverse().map(s=>`<div class="list-item">
+      <div class="li-info"><h4>${s.goal}</h4><p>🏦 সঞ্চয়${s.note?' · '+s.note:''}</p><div class="li-date">📅 ${fmtDate(s.date)}</div></div>
+      <div class="li-actions"><span style="color:var(--purple);font-weight:700;font-size:13px">৳${s.amount.toLocaleString()}</span>
+      <button class="btn btn-edit" onclick="openEdit('saving',${s.id})">✏️</button>
+      <button class="btn btn-danger" onclick="deleteSaving(${s.id})">🗑️</button></div>
+    </div>`).join('');
+
+  // RECENT
+  const allTx=[...S.income.map(i=>({...i,txtype:'আয়'})),...S.expense.map(e=>({...e,txtype:'খরচ'}))];
+  allTx.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+  document.getElementById('recentBox').innerHTML=allTx.length===0?'<div class="empty-state">🕐 কোনো লেনদেন নেই।</div>':
+    allTx.slice(0,6).map(t=>`<div class="list-item">
+      <div class="li-info"><h4>${t.desc}</h4><p>${t.txtype} · ${t.wallet||''}</p><div class="li-date">📅 ${fmtDate(t.date)}</div></div>
+      <span style="font-weight:700;color:${t.txtype==='আয়'?'var(--green)':'var(--red)'}">৳${t.amount.toLocaleString()}</span>
+    </div>`).join('');
+
+  // LEDGER
+  document.getElementById('masterLedgerBody').innerHTML=allTx.length===0?'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">কোনো রেকর্ড নেই।</td></tr>':
+    allTx.map(t=>`<tr>
+      <td><b>${t.desc}</b></td>
+      <td><span style="color:${t.txtype==='আয়'?'var(--green)':'var(--red)'}">${t.txtype==='আয়'?'💰':'💸'} ${t.txtype}</span></td>
+      <td>${t.txtype==='খরচ'?expTypeBadge(t.exptype||'self'):'—'}</td>
+      <td>${t.wallet||'—'}</td>
+      <td style="font-size:11px;color:var(--muted)">${fmtDate(t.date)}</td>
+      <td style="color:var(--muted)">${t.note||'—'}</td>
+      <td style="text-align:right;font-weight:700">৳${t.amount.toLocaleString()}</td>
+      <td>
+        <button class="btn btn-edit" onclick="openEdit('${t.txtype==='আয়'?'income':'expense'}',${t.id})" style="margin-right:4px">✏️</button>
+        <button class="btn btn-danger" onclick="${t.txtype==='আয়'?'deleteIncome':'deleteExpense'}(${t.id})">🗑️</button>
+      </td></tr>`).join('');
+
+  // CHARTS
+  if(lifeChart){lifeChart.data.datasets[0].data=[tInc,tExp,tSav,Math.abs(dNet)];lifeChart.update();}
+  updateMonthChart();
+}
+
+// ===== CHARTS =====
+function initCharts(){
+  const c1=document.getElementById('lifeChart');
+  const c2=document.getElementById('monthChart');
+  if(!c1||!c2) return;
+  lifeChart=new Chart(c1.getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['💰 আয়','💸 খরচ','🏦 সঞ্চয়','🤝 লোন'],datasets:[{data:[0,0,0,0],backgroundColor:['#10b981','#ef4444','#a855f7','#f59e0b'],borderWidth:0,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:11},padding:10}}}}
+  });
+  monthChart=new Chart(c2.getContext('2d'),{
+    type:'bar',
+    data:{labels:[],datasets:[
+      {label:'আয়',data:[],backgroundColor:'rgba(16,185,129,0.7)',borderRadius:4},
+      {label:'খরচ',data:[],backgroundColor:'rgba(239,68,68,0.7)',borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(255,255,255,0.03)'}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'}}}}
+  });
+}
+
+function updateMonthChart(){
+  if(!monthChart) return;
+  const now=new Date(); const months={};
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const k=d.getFullYear()+'-'+(d.getMonth()+1);
+    months[k]={label:(d.getMonth()+1)+'/'+d.getFullYear().toString().slice(2),inc:0,exp:0};
+  }
+  S.income.forEach(x=>{if(!x.date)return;const d=new Date(x.date);const k=d.getFullYear()+'-'+(d.getMonth()+1);if(months[k])months[k].inc+=x.amount;});
+  S.expense.forEach(x=>{if(!x.date)return;const d=new Date(x.date);const k=d.getFullYear()+'-'+(d.getMonth()+1);if(months[k])months[k].exp+=x.amount;});
+  const keys=Object.keys(months);
+  monthChart.data.labels=keys.map(k=>months[k].label);
+  monthChart.data.datasets[0].data=keys.map(k=>months[k].inc);
+  monthChart.data.datasets[1].data=keys.map(k=>months[k].exp);
+  monthChart.update();
+}
+
+// ===== PDF =====
+function generatePDF(){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,M=14;
+  doc.setFillColor(5,7,15);doc.rect(0,0,W,297,'F');
+  doc.setFillColor(10,22,40);doc.rect(0,0,W,38,'F');
+  doc.setFontSize(18);doc.setTextColor(16,185,129);doc.setFont('helvetica','bold');
+  doc.text('Shadhin Hisab PRO',M,15);
+  doc.setFontSize(9);doc.setTextColor(148,163,184);doc.setFont('helvetica','normal');
+  doc.text('Personal Finance Statement — '+new Date().toLocaleDateString('en-US'),M,22);
+  doc.text('User: '+S.userName+' | '+S.userRole,M,28);
+  const ti=S.income.reduce((s,x)=>s+x.amount,0);
+  const te=S.expense.reduce((s,x)=>s+x.amount,0);
+  const ts=S.savings.reduce((s,x)=>s+x.amount,0);
+  doc.setFontSize(10);doc.setTextColor(16,185,129);doc.setFont('helvetica','bold');
+  doc.text('Net: BDT '+(ti-te).toLocaleString(),W-M,15,{align:'right'});
+  doc.setFontSize(8);doc.setTextColor(148,163,184);doc.setFont('helvetica','normal');
+  doc.text('Income: BDT '+ti.toLocaleString(),W-M,22,{align:'right'});
+  doc.text('Expense: BDT '+te.toLocaleString(),W-M,28,{align:'right'});
+  doc.setDrawColor(30,41,59);doc.line(M,40,W-M,40);
+  let y=48;
+  // Summary
+  const bxW=(W-M*2-9)/4;
+  [{l:'Total Income',v:'BDT '+ti.toLocaleString(),c:[16,185,129]},{l:'Total Expense',v:'BDT '+te.toLocaleString(),c:[239,68,68]},{l:'Savings',v:'BDT '+ts.toLocaleString(),c:[168,85,247]},{l:'Net Balance',v:'BDT '+(ti-te-ts).toLocaleString(),c:[59,130,246]}].forEach((b,i)=>{
+    const bx=M+i*(bxW+3);
+    doc.setFillColor(15,25,45);doc.roundedRect(bx,y,bxW,16,2,2,'F');
+    doc.setFontSize(7);doc.setTextColor(b.c[0],b.c[1],b.c[2]);doc.setFont('helvetica','normal');
+    doc.text(b.l,bx+bxW/2,y+5,{align:'center'});
+    doc.setFontSize(9);doc.setFont('helvetica','bold');
+    doc.text(b.v,bx+bxW/2,y+12,{align:'center'});
+  });
+  y+=24;
+  // Income
+  if(S.income.length>0){
+    doc.setFontSize(10);doc.setTextColor(16,185,129);doc.setFont('helvetica','bold');
+    doc.text('INCOME',M,y);y+=5;
+    doc.setFillColor(13,28,24);doc.rect(M,y,W-M*2,6,'F');
+    doc.setFontSize(7);doc.setTextColor(100,116,130);doc.setFont('helvetica','bold');
+    doc.text('Description',M+2,y+4);doc.text('Wallet',M+70,y+4);doc.text('Date',M+105,y+4);doc.text('Note',M+130,y+4);doc.text('Amount',W-M-2,y+4,{align:'right'});
+    y+=8;
+    S.income.forEach((i,idx)=>{
+      if(y>270){doc.addPage();doc.setFillColor(5,7,15);doc.rect(0,0,W,297,'F');y=20;}
+      if(idx%2===0){doc.setFillColor(11,17,32);doc.rect(M,y-2,W-M*2,6,'F');}
+      doc.setFontSize(7.5);doc.setTextColor(220,230,240);doc.setFont('helvetica','normal');
+      doc.text((i.desc||'').substring(0,30),M+2,y+2);
+      doc.text((i.wallet||'').substring(0,15),M+70,y+2);
+      doc.text(fmtDate(i.date),M+105,y+2);
+      doc.text((i.note||'').substring(0,15),M+130,y+2);
+      doc.setTextColor(16,185,129);doc.setFont('helvetica','bold');
+      doc.text(i.amount.toLocaleString(),W-M-2,y+2,{align:'right'});
+      y+=7;
+    });
+    doc.setDrawColor(16,185,129);doc.line(M,y,W-M,y);y+=5;
+    doc.setFontSize(8);doc.setTextColor(16,185,129);doc.setFont('helvetica','bold');
+    doc.text('Total: BDT '+ti.toLocaleString(),W-M,y,{align:'right'});y+=8;
+  }
+  // Expense
+  if(S.expense.length>0){
+    if(y>240){doc.addPage();doc.setFillColor(5,7,15);doc.rect(0,0,W,297,'F');y=20;}
+    doc.setFontSize(10);doc.setTextColor(239,68,68);doc.setFont('helvetica','bold');
+    doc.text('EXPENSE',M,y);y+=5;
+    doc.setFillColor(42,13,13);doc.rect(M,y,W-M*2,6,'F');
+    doc.setFontSize(7);doc.setTextColor(100,116,130);doc.setFont('helvetica','bold');
+    doc.text('Category',M+2,y+4);doc.text('Type',M+70,y+4);doc.text('Wallet',M+90,y+4);doc.text('Date',M+115,y+4);doc.text('Note',M+135,y+4);doc.text('Amount',W-M-2,y+4,{align:'right'});
+    y+=8;
+    S.expense.forEach((e,idx)=>{
+      if(y>270){doc.addPage();doc.setFillColor(5,7,15);doc.rect(0,0,W,297,'F');y=20;}
+      if(idx%2===0){doc.setFillColor(20,10,10);doc.rect(M,y-2,W-M*2,6,'F');}
+      doc.setFontSize(7.5);doc.setTextColor(220,230,240);doc.setFont('helvetica','normal');
+      doc.text((e.desc||'').substring(0,25),M+2,y+2);
+      doc.text((e.exptype||'self').substring(0,8),M+70,y+2);
+      doc.text((e.wallet||'').substring(0,10),M+90,y+2);
+      doc.text(fmtDate(e.date),M+115,y+2);
+      doc.text((e.note||'').substring(0,12),M+135,y+2);
+      doc.setTextColor(239,68,68);doc.setFont('helvetica','bold');
+      doc.text(e.amount.toLocaleString(),W-M-2,y+2,{align:'right'});
+      y+=7;
+    });
+    doc.setDrawColor(239,68,68);doc.line(M,y,W-M,y);y+=5;
+    doc.setFontSize(8);doc.setTextColor(239,68,68);doc.setFont('helvetica','bold');
+    doc.text('Total: BDT '+te.toLocaleString(),W-M,y,{align:'right'});
+  }
+  // Footer
+  const pages=doc.internal.getNumberOfPages();
+  for(let p=1;p<=pages;p++){
+    doc.setPage(p);
+    doc.setFillColor(6,11,22);doc.rect(0,285,W,12,'F');
+    doc.setFontSize(7);doc.setTextColor(71,85,105);doc.setFont('helvetica','normal');
+    doc.text('Shadhin Hisab PRO | Dev: MD SHADHIN SARKER | WA: +8801780631505 | TG: @Secret_Trader_BD',W/2,291,{align:'center'});
+    doc.text('Page '+p+' of '+pages,W-M,291,{align:'right'});
+  }
+  doc.save('ShadhinHisab_'+new Date().toISOString().split('T')[0]+'.pdf');
+}
+
+// ===== BACKUP =====
+function exportDB(){
+  const a=document.createElement('a');
+  a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(S));
+  a.download='SwadhinHisab_'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+}
+function importDB(){
+  const f=document.getElementById('importFile');
+  if(!f.files.length){alert('ফাইল সিলেক্ট করুন।');return;}
+  const r=new FileReader();
+  r.onload=function(ev){
+    try{
+      const d=JSON.parse(ev.target.result);
+      // Preserve lock settings from current session
+      S={...d, lockEnabled:typeof d.lockEnabled!=='undefined'?d.lockEnabled:false};
+      save();render();initProfile();alert('✅ ডেটা রিস্টোর হয়েছে!');
+    }catch{alert('❌ ভুল ফাইল।');}
+  };
+  r.readAsText(f.files[0]);
+}
+function clearAllData(){
+  if(confirm('সত্যিই সব ডেটা মুছবেন?')){
+    if(confirm('এটি পূর্বাবস্থায় ফেরানো যাবে না!')){
+      const{pin,pinSet,sqQuestion,sqAnswer}=S;
+      S={income:[],expense:[],debts:[],savings:[],accounts:[],scratchpad:'',userName:'প্রো ইউজার',userRole:'চিফ একজিকিউটিভ',salary:0,salaryDay:1,budget:0,pin,pinSet,lockEnabled:false,sqQuestion,sqAnswer};
+      save();render();initProfile();alert('✅ সব ডেটা মুছে গেছে।');
+    }
+  }
+}
+</script>
+</body>
+</html>
+HTMLEOF
+echo "Done: $(wc -c < /mnt/user-data/outputs/shadhin-hisab-v2.html) bytes"
