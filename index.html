@@ -943,7 +943,7 @@ window.doFirebaseRegister = async function(){
       sub: 'trial',
       subEnd: new Date(Date.now() + 14*24*60*60*1000)
     });
-    S.userName = name;     setAuthLoading(false);
+    S.userName = name;
     setAuthLoading(false);
   }catch(e){
     const msgs = {
