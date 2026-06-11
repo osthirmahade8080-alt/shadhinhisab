@@ -223,9 +223,9 @@ body{overflow-y:auto}
     <div class="fb-auth-title">স্বাধীন হিসাব PRO</div>
     <div class="fb-auth-sub">আপনার একাউন্টে প্রবেশ করুন</div>
     <div class="fb-tab-row">
-      <button class="fb-tab active" id="tab-login" onclick="switchAuthTab('login')">🔐 লগইন</button>
-      <button class="fb-tab" id="tab-register" onclick="switchAuthTab('register')">📝 রেজিস্ট্রেশন</button>
-    </div>
+  <button class="fb-tab active" id="tab-login" onclick="window.switchAuthTab('login')">🔐 লগইন</button>
+  <button class="fb-tab" id="tab-register" onclick="window.switchAuthTab('register')">📝 রেজিস্ট্রেশন</button>
+</div>
     <div id="auth-login-form">
       <input class="fb-input" type="email" id="auth-email" placeholder="📧 ইমেইল ঠিকানা">
       <input class="fb-input" type="password" id="auth-pass" placeholder="🔑 পাসওয়ার্ড" onkeydown="if(event.key==='Enter')doFirebaseLogin()">
