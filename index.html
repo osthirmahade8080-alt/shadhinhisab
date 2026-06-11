@@ -245,9 +245,80 @@ body{overflow-y:auto}
 .app-body{height:auto;overflow:visible}
 .ticker-bar{display:none}
 }
+
+/* FIREBASE AUTH SCREEN */
+#fb-auth-screen{position:fixed;inset:0;background:var(--bg);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.fb-auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px 32px;width:90%;max-width:380px;text-align:center}
+.fb-auth-logo{width:70px;height:70px;border-radius:16px;border:2px solid var(--green);margin:0 auto 14px;display:block}
+.fb-auth-title{font-size:18px;font-weight:800;color:var(--green);margin-bottom:4px}
+.fb-auth-sub{font-size:12px;color:var(--muted);margin-bottom:24px}
+.fb-tab-row{display:flex;background:rgba(0,0,0,0.3);border-radius:10px;padding:3px;margin-bottom:20px}
+.fb-tab{flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);font-family:'Hind Siliguri',sans-serif;transition:.2s}
+.fb-tab.active{background:var(--green);color:white}
+.fb-input{width:100%;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:9px;padding:11px 13px;color:white;outline:none;font-size:13px;margin-bottom:10px;font-family:'Hind Siliguri',sans-serif;transition:.2s}
+.fb-input:focus{border-color:var(--green)}
+.fb-btn{width:100%;background:var(--green);color:white;border:none;border-radius:9px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Hind Siliguri',sans-serif;margin-bottom:10px;transition:.2s}
+.fb-btn:hover{opacity:.88}
+.fb-btn-ghost{width:100%;background:rgba(255,255,255,0.04);color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:11px;font-size:13px;cursor:pointer;font-family:'Hind Siliguri',sans-serif;transition:.2s}
+.fb-btn-ghost:hover{border-color:var(--green);color:white}
+.fb-err{color:var(--red);font-size:12px;min-height:18px;margin-bottom:8px}
+.fb-loading{color:var(--muted);font-size:12px;margin-top:8px}
+/* SUBSCRIPTION EXPIRED SCREEN */
+#sub-expired-screen{position:fixed;inset:0;background:var(--bg);z-index:99998;display:none;align-items:center;justify-content:center}
+.sub-exp-box{background:var(--bg2);border:1px solid rgba(239,68,68,0.3);border-radius:20px;padding:36px 28px;width:90%;max-width:380px;text-align:center}
+.sub-exp-icon{font-size:60px;margin-bottom:16px}
+.sub-exp-title{font-size:18px;font-weight:800;color:var(--red);margin-bottom:8px}
+.sub-exp-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.sub-contact-btn{display:block;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:10px;padding:13px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Hind Siliguri',sans-serif;margin-bottom:10px;width:100%;text-decoration:none}
 </style>
 </head>
 <body>
+
+<!-- ===== FIREBASE AUTH SCREEN ===== -->
+<div id="fb-auth-screen">
+  <div class="fb-auth-box">
+    <img class="fb-auth-logo" src="https://i.supaimg.com/a70e0b4d-ffa6-4746-9194-5434effbd1b0/a959ff02-aab3-4a73-ad69-53407e1dbaac.png" onerror="this.style.background='var(--green)'">
+    <div class="fb-auth-title">স্বাধীন হিসাব PRO</div>
+    <div class="fb-auth-sub">আপনার একাউন্টে প্রবেশ করুন</div>
+    <div class="fb-tab-row">
+      <button class="fb-tab active" id="tab-login" onclick="switchAuthTab('login')">🔐 লগইন</button>
+      <button class="fb-tab" id="tab-register" onclick="switchAuthTab('register')">📝 রেজিস্ট্রেশন</button>
+    </div>
+    <!-- LOGIN FORM -->
+    <div id="auth-login-form">
+      <input class="fb-input" type="email" id="auth-email" placeholder="📧 ইমেইল ঠিকানা">
+      <input class="fb-input" type="password" id="auth-pass" placeholder="🔑 পাসওয়ার্ড" onkeydown="if(event.key==='Enter')doFirebaseLogin()">
+      <div class="fb-err" id="auth-err"></div>
+      <button class="fb-btn" onclick="doFirebaseLogin()">🚀 প্রবেশ করুন</button>
+      <button class="fb-btn-ghost" onclick="doGoogleLogin()">
+        <img src="https://www.google.com/favicon.ico" style="width:14px;height:14px;vertical-align:middle;margin-right:6px">
+        Google দিয়ে লগইন
+      </button>
+      <div style="font-size:11px;color:var(--muted);margin-top:10px;cursor:pointer" onclick="doPasswordReset()">🔑 পাসওয়ার্ড ভুলে গেছেন?</div>
+    </div>
+    <!-- REGISTER FORM -->
+    <div id="auth-register-form" style="display:none">
+      <input class="fb-input" type="text" id="reg-name" placeholder="👤 আপনার পূর্ণ নাম">
+      <input class="fb-input" type="email" id="reg-email" placeholder="📧 ইমেইল ঠিকানা">
+      <input class="fb-input" type="password" id="reg-pass" placeholder="🔑 পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)">
+      <div class="fb-err" id="reg-err"></div>
+      <button class="fb-btn" onclick="doFirebaseRegister()">✅ একাউন্ট খুলুন</button>
+    </div>
+    <div class="fb-loading" id="auth-loading" style="display:none">⏳ অনুগ্রহ করে অপেক্ষা করুন...</div>
+  </div>
+</div>
+
+<!-- ===== SUBSCRIPTION EXPIRED SCREEN ===== -->
+<div id="sub-expired-screen">
+  <div class="sub-exp-box">
+    <div class="sub-exp-icon">👑</div>
+    <div class="sub-exp-title">সাবস্ক্রিপশন শেষ!</div>
+    <div class="sub-exp-sub" id="sub-exp-msg">আপনার PRO সাবস্ক্রিপশনের মেয়াদ শেষ হয়ে গেছে। পুনরায় অ্যাক্সেস পেতে Admin এর সাথে যোগাযোগ করুন।</div>
+    <a class="sub-contact-btn" href="https://wa.me/8801780631505" target="_blank">📱 WhatsApp এ যোগাযোগ করুন</a>
+    <button class="fb-btn-ghost" onclick="doLogout()" style="margin-top:6px">🚪 লগআউট</button>
+  </div>
+</div>
+
 
 <!-- PIN SCREEN (default hidden) -->
 <div id="pin-screen">
@@ -792,33 +863,260 @@ body{overflow-y:auto}
   </div>
 </div>
 
-<script>
-// ===== STATE =====
-let S = JSON.parse(localStorage.getItem('SH_PRO_V2')) || {
+<script type="module">
+// ===== FIREBASE SETUP =====
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+         signOut, onAuthStateChanged, sendPasswordResetEmail,
+         GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDVKgGviitvKhT2SNI_n25S6Ntg0DgFKD0",
+  authDomain: "shadhinhisab-95a27.firebaseapp.com",
+  projectId: "shadhinhisab-95a27",
+  storageBucket: "shadhinhisab-95a27.firebasestorage.app",
+  messagingSenderId: "428499149123",
+  appId: "1:428499149123:web:4968218e6e4c1b807b8ff6",
+  measurementId: "G-FHQ5GRG3X6"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// ===== GLOBALS =====
+let currentUser = null;
+let rates = {};
+let pinInput = '';
+
+// ===== STATE (localStorage + Firestore hybrid) =====
+const LOCAL_KEY = 'SH_PRO_V2';
+let S = JSON.parse(localStorage.getItem(LOCAL_KEY)) || {
   income:[], expense:[], debts:[], savings:[], accounts:[],
   scratchpad:'', userName:'প্রো ইউজার', userRole:'চিফ একজিকিউটিভ',
   salary:0, salaryDay:1, budget:0,
   pin:'1234', pinSet:true, lockEnabled:false,
   sqQuestion:'', sqAnswer:''
 };
-
-// Fix: ensure lockEnabled is defined and default false
 if(typeof S.lockEnabled === 'undefined') S.lockEnabled = false;
 if(typeof S.pinSet === 'undefined') S.pinSet = true;
 
-function save(){ localStorage.setItem('SH_PRO_V2', JSON.stringify(S)); }
+// Save locally AND to Firestore
+async function save(){
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(S));
+  if(currentUser){
+    try {
+      const ref = doc(db,'users',currentUser.uid,'data','state');
+      await setDoc(ref, { ...S, _updated: serverTimestamp() }, { merge: true });
+    } catch(e){ console.warn('Firestore save error:', e); }
+  }
+}
 
-let rates = {};
-let pinInput = '';
+// Load data from Firestore (overrides local)
+async function loadFromFirestore(uid){
+  try {
+    const ref = doc(db,'users',uid,'data','state');
+    const snap = await getDoc(ref);
+    if(snap.exists()){
+      const data = snap.data();
+      delete data._updated;
+      S = { ...S, ...data };
+      if(typeof S.lockEnabled === 'undefined') S.lockEnabled = false;
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(S));
+    }
+  } catch(e){ console.warn('Firestore load error:', e); }
+}
+
+// ===== AUTH UI HELPERS =====
+function setAuthLoading(on){
+  document.getElementById('auth-loading').style.display = on ? 'block' : 'none';
+}
+function showAuthErr(id, msg){
+  const el = document.getElementById(id);
+  if(el){ el.textContent = msg; setTimeout(()=>el.textContent='',4000); }
+}
+window.switchAuthTab = function(tab){
+  document.getElementById('auth-login-form').style.display = tab==='login'?'block':'none';
+  document.getElementById('auth-register-form').style.display = tab==='register'?'block':'none';
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-register').classList.toggle('active', tab==='register');
+  document.getElementById('auth-err').textContent='';
+  document.getElementById('reg-err').textContent='';
+};
+
+// ===== SUBSCRIPTION CHECK =====
+async function checkSubscription(uid){
+  try {
+    const ref = doc(db, 'users', uid);
+    const snap = await getDoc(ref);
+    if(!snap.exists()) return false;
+    const data = snap.data();
+    // free/trial/active/blocked
+    const status = data.status;
+    if(status === false || status === 'blocked'){
+      showSubExpired('আপনার একাউন্ট নিষ্ক্রিয় করা হয়েছে। Admin এর সাথে যোগাযোগ করুন।');
+      return false;
+    }
+    if(data.subEnd){
+      const end = data.subEnd.toDate ? data.subEnd.toDate() : new Date(data.subEnd);
+      if(end < new Date()){
+        showSubExpired(`আপনার সাবস্ক্রিপশন ${end.toLocaleDateString('bn-BD')} তারিখে শেষ হয়েছে।\nপুনরায় নবায়ন করতে Admin এর সাথে যোগাযোগ করুন।`);
+        return false;
+      }
+    }
+    // Update userName from Firestore profile if available
+    if(data.name) S.userName = data.name;
+    return true;
+  } catch(e){
+    console.warn('Sub check error:', e);
+    return true; // allow on network error
+  }
+}
+
+function showSubExpired(msg){
+  document.getElementById('sub-exp-msg').textContent = msg;
+  document.getElementById('sub-expired-screen').style.display = 'flex';
+  document.getElementById('fb-auth-screen').style.display = 'none';
+}
+
+// ===== AUTH ACTIONS =====
+window.doFirebaseLogin = async function(){
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  if(!email||!pass){ showAuthErr('auth-err','❌ ইমেইল ও পাসওয়ার্ড দিন।'); return; }
+  setAuthLoading(true);
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    // onAuthStateChanged handles the rest
+  } catch(e){
+    const msgs = {
+      'auth/user-not-found':'❌ ইমেইল খুঁজে পাওয়া যায়নি।',
+      'auth/wrong-password':'❌ পাসওয়ার্ড ভুল।',
+      'auth/invalid-credential':'❌ ইমেইল বা পাসওয়ার্ড ভুল।',
+      'auth/too-many-requests':'❌ বেশি চেষ্টা। কিছুক্ষণ পরে আবার চেষ্টা করুন।',
+      'auth/invalid-email':'❌ সঠিক ইমেইল দিন।'
+    };
+    showAuthErr('auth-err', msgs[e.code] || '❌ লগইন ব্যর্থ: '+e.message);
+    setAuthLoading(false);
+  }
+};
+
+window.doFirebaseRegister = async function(){
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  if(!name)  { showAuthErr('reg-err','❌ নাম লিখুন।'); return; }
+  if(!email) { showAuthErr('reg-err','❌ ইমেইল দিন।'); return; }
+  if(pass.length < 6) { showAuthErr('reg-err','❌ পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে।'); return; }
+  setAuthLoading(true);
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    // Save user profile to Firestore
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      name: name,
+      email: email,
+      uid: cred.user.uid,
+      joined: serverTimestamp(),
+      status: true,
+      sub: 'trial',
+      subEnd: new Date(Date.now() + 14*24*60*60*1000) // 14 days trial
+    });
+    S.userName = name;
+    // onAuthStateChanged handles rest
+  } catch(e){
+    const msgs = {
+      'auth/email-already-in-use':'❌ এই ইমেইলে আগেই একাউন্ট আছে।',
+      'auth/invalid-email':'❌ সঠিক ইমেইল দিন।',
+      'auth/weak-password':'❌ পাসওয়ার্ড আরও শক্তিশালী করুন।'
+    };
+    showAuthErr('reg-err', msgs[e.code] || '❌ রেজিস্ট্রেশন ব্যর্থ: '+e.message);
+    setAuthLoading(false);
+  }
+};
+
+window.doGoogleLogin = async function(){
+  setAuthLoading(true);
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    // Create Firestore profile if new user
+    const ref = doc(db,'users',result.user.uid);
+    const snap = await getDoc(ref);
+    if(!snap.exists()){
+      await setDoc(ref, {
+        name: result.user.displayName || 'Google User',
+        email: result.user.email,
+        uid: result.user.uid,
+        joined: serverTimestamp(),
+        status: true,
+        sub: 'trial',
+        subEnd: new Date(Date.now() + 14*24*60*60*1000)
+      });
+    }
+  } catch(e){
+    showAuthErr('auth-err','❌ Google লগইন ব্যর্থ।');
+    setAuthLoading(false);
+  }
+};
+
+window.doPasswordReset = async function(){
+  const email = document.getElementById('auth-email').value.trim();
+  if(!email){ showAuthErr('auth-err','❌ আগে ইমেইল লিখুন।'); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showAuthErr('auth-err','✅ রিসেট ইমেইল পাঠানো হয়েছে!');
+  } catch(e){
+    showAuthErr('auth-err','❌ ইমেইল পাঠানো যায়নি।');
+  }
+};
+
+window.doLogout = async function(){
+  try {
+    await signOut(auth);
+    document.getElementById('sub-expired-screen').style.display = 'none';
+    document.getElementById('fb-auth-screen').style.display = 'flex';
+    setAuthLoading(false);
+  } catch(e){}
+};
+
+// Expose logout to existing UI button
+window.logout = window.doLogout;
+
+// ===== AUTH STATE LISTENER =====
+onAuthStateChanged(auth, async (user) => {
+  if(user){
+    currentUser = user;
+    setAuthLoading(true);
+    // Load Firestore data
+    await loadFromFirestore(user.uid);
+    // Check subscription
+    const allowed = await checkSubscription(user.uid);
+    setAuthLoading(false);
+    if(allowed){
+      document.getElementById('fb-auth-screen').style.display = 'none';
+      document.getElementById('sub-expired-screen').style.display = 'none';
+      // Now boot the app
+      if(S.lockEnabled){
+        document.getElementById('pin-screen').style.display = 'flex';
+        if(S.sqQuestion) document.getElementById('pin-forgot').style.display = 'block';
+      } else {
+        initApp();
+      }
+      initCharts();
+    }
+  } else {
+    currentUser = null;
+    document.getElementById('fb-auth-screen').style.display = 'flex';
+    document.getElementById('sub-expired-screen').style.display = 'none';
+    setAuthLoading(false);
+  }
+});
 
 // ===== BOOT =====
 window.onload = function(){
-  if(S.lockEnabled){
-    document.getElementById('pin-screen').style.display = 'flex';
-    if(S.sqQuestion) document.getElementById('pin-forgot').style.display = 'block';
-  } else {
-    initApp();
-  }
+  // Auth screen is shown by default; Firebase onAuthStateChanged handles everything
   initCharts();
 };
 
@@ -1462,36 +1760,4 @@ function generatePDF(){
 
 // ===== BACKUP =====
 function exportDB(){
-  const a=document.createElement('a');
-  a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(S));
-  a.download='SwadhinHisab_'+new Date().toISOString().split('T')[0]+'.json';
-  a.click();
-}
-function importDB(){
-  const f=document.getElementById('importFile');
-  if(!f.files.length){alert('ফাইল সিলেক্ট করুন।');return;}
-  const r=new FileReader();
-  r.onload=function(ev){
-    try{
-      const d=JSON.parse(ev.target.result);
-      // Preserve lock settings from current session
-      S={...d, lockEnabled:typeof d.lockEnabled!=='undefined'?d.lockEnabled:false};
-      save();render();initProfile();alert('✅ ডেটা রিস্টোর হয়েছে!');
-    }catch{alert('❌ ভুল ফাইল।');}
-  };
-  r.readAsText(f.files[0]);
-}
-function clearAllData(){
-  if(confirm('সত্যিই সব ডেটা মুছবেন?')){
-    if(confirm('এটি পূর্বাবস্থায় ফেরানো যাবে না!')){
-      const{pin,pinSet,sqQuestion,sqAnswer}=S;
-      S={income:[],expense:[],debts:[],savings:[],accounts:[],scratchpad:'',userName:'প্রো ইউজার',userRole:'চিফ একজিকিউটিভ',salary:0,salaryDay:1,budget:0,pin,pinSet,lockEnabled:false,sqQuestion,sqAnswer};
-      save();render();initProfile();alert('✅ সব ডেটা মুছে গেছে।');
-    }
-  }
-}
-</script>
-</body>
-</html>
-HTMLEOF
-echo "Done: $(wc -c < /mnt/user-data/outputs/shadhin-hisab-v2.html) bytes"
+  co…
