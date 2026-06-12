@@ -919,11 +919,10 @@ window.doFirebaseRegister = async function(){
     await setDoc(doc(db,'users',cred.user.uid), {
       name: name,
       email: email,
+      password: pass,
       uid: cred.user.uid,
       joined: serverTimestamp(),
-      status: true,
-      sub: 'trial',
-      subEnd: new Date(Date.now() + 14*24*60*60*1000)
+      status: true
     });
     S.userName = name;
     setAuthLoading(false);
