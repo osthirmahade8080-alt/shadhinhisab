@@ -874,29 +874,13 @@ async function checkSubscription(uid){
   try{
     const ref = doc(db,'users',uid);
     const snap = await getDoc(ref);
-    if(!snap.exists()) return true; // নতুন user — allow
-    const data = snap.data();
-    if(data.status===false || data.status==='blocked'){
-      showSubExpired('আপনার একাউন্ট নিষ্ক্রিয় করা হয়েছে। Admin এর সাথে যোগাযোগ করুন।');
-      return false;
+    if(snap.exists() && snap.data().name){
+      S.userName = snap.data().name;
     }
-    if(data.subEnd){
-      const end = data.subEnd.toDate ? data.subEnd.toDate() : new Date(data.subEnd);
-      if(end < new Date()){
-        showSubExpired('আপনার সাবস্ক্রিপশন '+end.toLocaleDateString('bn-BD')+' তারিখে শেষ হয়েছে।');
-        return false;
-      }
-    }
-    if(data.name) S.userName = data.name;
-    return true;
-  }catch(e){ return true; }
+  }catch(e){}
+  return true;
 }
 
-function showSubExpired(msg){
-  document.getElementById('sub-exp-msg').textContent = msg;
-  document.getElementById('sub-expired-screen').style.display = 'flex';
-  document.getElementById('fb-auth-screen').style.display = 'none';
-}
 
 // LOGIN
 window.doFirebaseLogin = async function(){
