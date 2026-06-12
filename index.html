@@ -818,19 +818,17 @@ let currentUser = null;
 let rates = {};
 let pinInput = '';
 
-const LOCAL_KEY = 'SH_PRO_V2';
-let S = JSON.parse(localStorage.getItem(LOCAL_KEY)) || {
+function getLocalKey(uid){ return 'SH_PRO_V2_'+(uid||'guest'); }
+function getDefaultState(){ return {
   income:[], expense:[], debts:[], savings:[], accounts:[],
   scratchpad:'', userName:'প্রো ইউজার', userRole:'চিফ একজিকিউটিভ',
   salary:0, salaryDay:1, budget:0,
   pin:'1234', pinSet:true, lockEnabled:false,
   sqQuestion:'', sqAnswer:''
-};
-if(typeof S.lockEnabled==='undefined') S.lockEnabled=false;
-if(typeof S.pinSet==='undefined') S.pinSet=true;
-
+}; }
+let S = getDefaultState();
 async function save(){
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(S));
+  localStorage.setItem(getLocalKey(currentUser?.uid), JSON.stringify(S));
   if(currentUser){
     try{
       const ref = doc(db,'users',currentUser.uid,'data','state');
@@ -840,19 +838,19 @@ async function save(){
 }
 
 async function loadFromFirestore(uid){
+  S = getDefaultState();
+  const cached = localStorage.getItem(getLocalKey(uid));
+  if(cached){ try{ S={...S,...JSON.parse(cached)}; }catch(e){} }
   try{
     const ref = doc(db,'users',uid,'data','state');
     const snap = await getDoc(ref);
     if(snap.exists()){
-      const data = snap.data();
-      delete data._updated;
-      S = {...S, ...data};
-      if(typeof S.lockEnabled==='undefined') S.lockEnabled=false;
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(S));
+      const data=snap.data(); delete data._updated;
+      S={...S,...data};
+      localStorage.setItem(getLocalKey(uid), JSON.stringify(S));
     }
-  }catch(e){ console.warn('Firestore load error:',e); }
+  }catch(e){ console.warn('Firestore load error:',e);}
 }
-
 // AUTH UI
 function setAuthLoading(on){
   document.getElementById('auth-loading').style.display = on?'block':'none';
@@ -996,6 +994,9 @@ window.doPasswordReset = async function(){
 // LOGOUT
 window.doLogout = async function(){
   try{
+  if(currentUser) localStorage.removeItem(getLocalKey(currentUser.uid));
+S = getDefaultState();
+currentUser = null;
     await signOut(auth);
     document.getElementById('sub-expired-screen').style.display='none';
     document.getElementById('fb-auth-screen').style.display='flex';
