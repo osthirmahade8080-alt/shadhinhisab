@@ -1,0 +1,25 @@
+{
+  "name": "স্বাধীন হিসাব PRO",
+  "short_name": "হিসাব PRO",
+  "description": "হিসাব রাখুন • উন্নতি করুন",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05070f",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "lang": "bn",
+  "icons": [
+    {
+      "src": "https://i.supaimg.com/a70e0b4d-ffa6-4746-9194-5434effbd1b0/a959ff02-aab3-4a73-ad69-53407e1dbaac.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://i.supaimg.com/a70e0b4d-ffa6-4746-9194-5434effbd1b0/a959ff02-aab3-4a73-ad69-53407e1dbaac.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
